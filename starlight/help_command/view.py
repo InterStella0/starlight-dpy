@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING
 import discord
 from discord.ext import commands
 
-from ..views.pagination import SimplePaginationView, ViewEnchanced
+from ..views.pagination import SimplePaginationView, ViewEnhanced
 
 if TYPE_CHECKING:
     from .command import MenuHelpCommand
@@ -127,7 +127,7 @@ class HelpMenuBot(SimplePaginationView):
         await pagination.start(self.help_command.context, message=self.help_command.original_message)
 
 
-class HelpMenuCommand(ViewEnchanced):
+class HelpMenuCommand(ViewEnhanced):
     def __init__(self, help_command: MenuHelpCommand, command: commands.Command, **kwargs):
         super().__init__(context=help_command.context, **kwargs)
         self.help_command: MenuHelpCommand = help_command
@@ -139,7 +139,7 @@ class HelpMenuCommand(ViewEnchanced):
         await super().start(**kwargs)
 
 
-class HelpMenuGroup(ViewEnchanced):
+class HelpMenuGroup(ViewEnhanced):
     def __init__(self, help_command: MenuHelpCommand, group: commands.Group[Any, ..., Any], **kwargs):
         super().__init__(context=help_command.context, **kwargs)
         self.help_command: MenuHelpCommand = help_command
@@ -151,7 +151,7 @@ class HelpMenuGroup(ViewEnchanced):
         await super().start(**kwargs)
 
 
-class HelpMenuError(ViewEnchanced):
+class HelpMenuError(ViewEnhanced):
     def __init__(self, help_command: MenuHelpCommand, error: Exception, **kwargs):
         super().__init__(delete_after=True, context=help_command.context, **kwargs)
         self.help_command: MenuHelpCommand = help_command

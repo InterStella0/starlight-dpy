@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import BotBase
 
 from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog
-from ..views.pagination import ViewEnchanced
+from ..views.pagination import ViewEnhanced
 
 __all__ = (
     "MenuHelpCommand",
@@ -119,8 +119,8 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
         message = await self.get_destination().send(**menu_kwargs)
         await self.initiate_view(view=view, message=message, context=self.context)
 
-    async def initiate_view(self, view: Optional[ViewEnchanced], **kwargs) -> None:
-        if isinstance(view, ViewEnchanced):
+    async def initiate_view(self, view: Optional[ViewEnhanced], **kwargs) -> None:
+        if isinstance(view, ViewEnhanced):
             await view.start(**kwargs)
             self.original_message = view.message
             return

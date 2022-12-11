@@ -9,14 +9,14 @@ from ..errors.view import NotViewOwner
 
 __all__ = (
     "SimplePaginationView",
-    "ViewEnchanced"
+    "ViewEnhanced"
 )
 
 
 T = TypeVar('T')
 
 
-class ViewEnchanced(discord.ui.View):
+class ViewEnhanced(discord.ui.View):
     def __init__(self, context: commands.Context, *, delete_after=False, **kwargs):
         super().__init__(**kwargs)
         self.delete_after: bool = delete_after
@@ -57,7 +57,7 @@ class ViewEnchanced(discord.ui.View):
         await super().on_error(interaction, error, item)
 
 
-class SimplePaginationView(ViewEnchanced):
+class SimplePaginationView(ViewEnhanced):
     start_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏪")
     previous_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="◀️")
     stop_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏹️")
