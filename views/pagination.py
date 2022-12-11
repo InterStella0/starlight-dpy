@@ -4,7 +4,14 @@ from typing import List, Any, TypeVar, Union, Dict, Optional
 import discord
 from discord.ext import commands
 
-from .errors import NotViewOwner
+from ..errors.view import NotViewOwner
+
+
+__all__ = (
+    "SimplePaginationView",
+    "ViewEnchanced"
+)
+
 
 T = TypeVar('T')
 

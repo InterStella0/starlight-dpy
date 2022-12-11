@@ -1,1 +1,1 @@
-from .help_command import *
+from .help_command.command import *
