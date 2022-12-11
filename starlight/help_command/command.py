@@ -23,11 +23,13 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
                  cog_menu: bool = True,
                  sort_commands: bool = True,
                  no_documentation: str = "No Documentation",
+                 no_category: str = "No Category",
                  cog_name: Optional[str] = None,
                  accent_color: Union[discord.Color, int] = discord.Color.blurple(),
                  error_color: Union[discord.Color, int] = discord.Color.red()):
-        super().__init__()
+        self.__context: Optional[commands.Context] = None  # hacky
         self.__cog_name: str = cog_name
+        super().__init__(no_category=no_category)
         self.per_page: int = per_page
         self._cog_menu: bool = cog_menu
         self.accent_color: Union[discord.Color, int] = accent_color
@@ -37,10 +39,15 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
         self.view_provider: HelpMenuProvider = HelpMenuProvider(self)
         self.original_message: Optional[discord.Message] = None
 
-    def _add_to_bot(self, bot: BotBase) -> None:
-        super()._add_to_bot(bot)
-        if self.__cog_name:
-            self.__resolve_cog(bot)
+    @property
+    def context(self):
+        return self.__context
+
+    @context.setter
+    def context(self, value: Union[discord.utils.MISSING, commands.Context]):
+        self.__context = value
+        if self.__cog_name and isinstance(value, commands.Context):
+            self.__resolve_cog(value.bot)
 
     def __resolve_cog(self, bot: BotBase):
         self.cog = bot.get_cog(self.__cog_name)
