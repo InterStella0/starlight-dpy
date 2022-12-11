@@ -2,7 +2,10 @@ from setuptools import setup
 
 version = '0.0.1'
 packages = [
-    "starlight"
+    "starlight",
+    "starlight.help_command",
+    "starlight.views",
+    "starlight.errors",
 ]
 
 with open('README.md') as f:
