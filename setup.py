@@ -15,11 +15,11 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 
-setup(name='starlight',
+setup(name='starlight-dpy',
       author='InterStella0',
-      url='https://github.com/InterStella0/starlight',
+      url='https://github.com/InterStella0/starlight-dpy',
       project_urls={
-        "Issue tracker": "https://github.com/InterStella0/starlight/issues",
+        "Issue tracker": "https://github.com/InterStella0/starlight-dpy/issues",
       },
       version=version,
       packages=packages,
@@ -29,7 +29,7 @@ setup(name='starlight',
       install_requires=requirements,
       python_requires='>=3.8.0',
       classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Natural Language :: English',
