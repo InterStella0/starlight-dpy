@@ -34,8 +34,9 @@ bot = commands.Bot(
 ```
 **Output**
 
-<img src="http://api.interstella.online/files/1e6ju4jGXaPYZzbbP1UfHxSq0uDnHQKbf.png" width=400 />
-<img src="http://api.interstella.online/files/1vCH8k3ZTRd4Z7g9ic8OzYJnn1d4uTHTo.png" width=400 />
+
+![default.png](http://api.interstella.online/files/1e6ju4jGXaPYZzbbP1UfHxSq0uDnHQKbf.png)
+![pagination.png](http://api.interstella.online//files/1vCH8k3ZTRd4Z7g9ic8OzYJnn1d4uTHTo.png)
 
 ### Customizing
 You can easily customize your help command by overriding `format_*` methods!
@@ -56,5 +57,4 @@ help_command = MyMenuHelpCommand()
 bot = commands.Bot(command_prefix="??", help_command=help_command, intents=discord.Intents.all())
 ```
 **Output**
-
-<img src="http://api.interstella.online/files/1OMN59oaNjq-DxM9_upOTSRHNujO5R6mk.png" width=400 />
+![output.png](http://api.interstella.online/files/1OMN59oaNjq-DxM9_upOTSRHNujO5R6mk.png)
