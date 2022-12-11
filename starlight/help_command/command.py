@@ -147,6 +147,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
     async def format_front_bot_menu(self, mapping: _MappingBotCommands) -> _OptionalFormatReturns:
         embed = discord.Embed(
             title="Help Command",
+            description=self.context.bot.description or None,
             color=self.accent_color
         )
         data = [(cog, cmds) for cog, cmds in mapping.items()]
