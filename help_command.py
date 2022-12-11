@@ -11,6 +11,8 @@ __all__ = (
 )
 
 T = TypeVar('T')
+_MappingBotCommands = Dict[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]
+_OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 
 class MenuDropDown(discord.ui.Select):
@@ -63,7 +65,7 @@ class HelpMenuBot(SimplePaginationView):
     previous_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="◀️")
     next_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="▶️")
 
-    def __init__(self, help_command: MenuHelpCommand, mapping: Dict[Optional[commands.Cog], commands.Command],
+    def __init__(self, help_command: MenuHelpCommand, mapping: _MappingBotCommands,
                  *, no_category: str = "No Category", cog_per_page: Optional[int] = None, **kwargs):
         self.cog_per_page: int = cog_per_page or help_command.per_page
         super().__init__(self._paginate_cogs([*mapping]), context=help_command.context, **kwargs)
@@ -89,7 +91,7 @@ class HelpMenuBot(SimplePaginationView):
                     self.remove_item(btn)
                 self.add_item(btn)
 
-    async def format_page(self, interaction: discord.Interaction, data: List[commands.Cog]) -> Union[discord.Embed, Dict[str, Any], str]:
+    async def format_page(self, interaction: discord.Interaction, data: List[commands.Cog]) -> _OptionalFormatReturns:
         mapping = {}
         for cog in data:
             mapping[cog] = self.__mapping[cog]
@@ -177,7 +179,7 @@ class HelpMenuProvider:
     def __init__(self, help_command: MenuHelpCommand):
         self.help_command: MenuHelpCommand = help_command
 
-    async def provide_bot_view(self, mapping: Dict[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]) -> HelpMenuBot:
+    async def provide_bot_view(self, mapping: _MappingBotCommands) -> HelpMenuBot:
         """|coro|
 
         This method is invoke when the MenuHelpCommand.send_bot_help is called.
@@ -313,7 +315,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
     def format_command_brief(self, cmd: commands.Command) -> str:
         return f"{self.get_command_signature(cmd)}\n{cmd.short_doc or self.no_documentation}"
 
-    async def format_group_detail(self, view: HelpMenuGroup) -> Union[discord.Embed, Dict[str, Any], str]:
+    async def format_group_detail(self, view: HelpMenuGroup) -> _OptionalFormatReturns:
         group = view.group
         subcommands = "\n".join([self.format_command_brief(cmd) for cmd in group.commands])
         description = group.help or self.no_documentation
@@ -323,7 +325,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
             color=self.accent_color
         )
 
-    async def format_command_detail(self, view: HelpMenuCommand) -> discord.Embed:
+    async def format_command_detail(self, view: HelpMenuCommand) -> _OptionalFormatReturns:
         cmd = view.command
         return discord.Embed(
             title=self.get_command_signature(cmd),
@@ -331,7 +333,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
             color=self.accent_color
         )
 
-    async def format_error_detail(self, view: HelpMenuError) -> discord.Embed:
+    async def format_error_detail(self, view: HelpMenuError) -> _OptionalFormatReturns:
         return discord.Embed(
             title="Something went wrong!",
             description=str(view.error),
@@ -377,7 +379,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
         message = await self.get_destination().send(**menu_kwargs)
         await self.initiate_view(view=view, message=message, context=self.context)
 
-    async def initiate_view(self, view: Optional[ViewEnchanced], **kwargs):
+    async def initiate_view(self, view: Optional[ViewEnchanced], **kwargs) -> None:
         if isinstance(view, ViewEnchanced):
             await view.start(**kwargs)
             self.original_message = view.message
@@ -402,8 +404,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
         view = await self.view_provider.provide_error_view(error)
         await self.initiate_view(view)
 
-    async def format_front_bot_menu(self, mapping: Dict[Optional[commands.Cog], commands.Command[Any, ..., Any]]
-                                    ) -> Union[discord.Embed, Dict[str, Any], str]:
+    async def format_front_bot_menu(self, mapping: _MappingBotCommands) -> _OptionalFormatReturns:
         embed = discord.Embed(
             title="Help Command",
             color=self.accent_color
@@ -418,7 +419,7 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
 
         return embed
 
-    async def format_cog_page(self, view: HelpMenuCog, data: List[commands.Command]) -> Union[discord.Embed, Dict[str, Any], str]:
+    async def format_cog_page(self, view: HelpMenuCog, data: List[commands.Command]) -> _OptionalFormatReturns:
         return discord.Embed(
             title=self.resolve_cog_name(view.cog),
             description="\n".join([self.format_command_brief(cmd) for cmd in data]),
