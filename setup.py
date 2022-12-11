@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version = ''
+version = '0.0.1'
 packages = [
     "starlight"
 ]
@@ -26,7 +26,7 @@ setup(name='starlight',
       install_requires=requirements,
       python_requires='>=3.8.0',
       classifiers=[
-        'Development Status :: 1 - Planning ',
+        'Development Status :: 1 - Planning',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Natural Language :: English',
