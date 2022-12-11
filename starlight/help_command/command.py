@@ -3,6 +3,7 @@ from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping
 
 import discord
 from discord.ext import commands
+from discord.ext.commands.bot import BotBase
 
 from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog
 from ..views.pagination import ViewEnchanced
@@ -22,9 +23,11 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
                  cog_menu: bool = True,
                  sort_commands: bool = True,
                  no_documentation: str = "No Documentation",
+                 cog_name: Optional[str] = None,
                  accent_color: Union[discord.Color, int] = discord.Color.blurple(),
                  error_color: Union[discord.Color, int] = discord.Color.red()):
         super().__init__()
+        self.__cog_name: str = cog_name
         self.per_page: int = per_page
         self._cog_menu: bool = cog_menu
         self.accent_color: Union[discord.Color, int] = accent_color
@@ -33,6 +36,14 @@ class MenuHelpCommand(commands.MinimalHelpCommand):
         self.__sort_commands: bool = sort_commands
         self.view_provider: HelpMenuProvider = HelpMenuProvider(self)
         self.original_message: Optional[discord.Message] = None
+
+    def _add_to_bot(self, bot: BotBase) -> None:
+        super()._add_to_bot(bot)
+        if self.__cog_name:
+            self.__resolve_cog(bot)
+
+    def __resolve_cog(self, bot: BotBase):
+        self.cog = bot.get_cog(self.__cog_name)
 
     def format_command_brief(self, cmd: commands.Command) -> str:
         return f"{self.get_command_signature(cmd)}\n{cmd.short_doc or self.no_documentation}"
