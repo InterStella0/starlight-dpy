@@ -17,42 +17,30 @@ _MappingBotCommands = Dict[Optional[commands.Cog], List[commands.Command[Any, ..
 _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 
-class MenuHelpCommand(commands.MinimalHelpCommand):
+class MenuHelpCommand(commands.HelpCommand):
     def __init__(self, *,
                  per_page: int = 6,
                  cog_menu: bool = True,
                  sort_commands: bool = True,
                  no_documentation: str = "No Documentation",
                  no_category: str = "No Category",
-                 cog_name: Optional[str] = None,
                  accent_color: Union[discord.Color, int] = discord.Color.blurple(),
-                 error_color: Union[discord.Color, int] = discord.Color.red()):
-        self.__context: Optional[commands.Context] = None  # hacky
-        self.__cog_name: str = cog_name
-        super().__init__(no_category=no_category)
+                 error_color: Union[discord.Color, int] = discord.Color.red(), **options):
+        super().__init__(**options)
+        self.no_category: str = no_category
         self.per_page: int = per_page
         self._cog_menu: bool = cog_menu
         self.accent_color: Union[discord.Color, int] = accent_color
         self.error_color: Union[discord.Color, int] = error_color
-        self.no_documentation = no_documentation
+        self.no_documentation: str = no_documentation
         self.__sort_commands: bool = sort_commands
         self.view_provider: HelpMenuProvider = HelpMenuProvider(self)
         self.original_message: Optional[discord.Message] = None
 
-    @property
-    def context(self):
-        return self.__context
+    def get_command_signature(self, command: commands.Command[Any, ..., Any], /) -> str:
+        return f'{self.context.clean_prefix}{command.qualified_name} {command.signature}'
 
-    @context.setter
-    def context(self, value: Union[discord.utils.MISSING, commands.Context]):
-        self.__context = value
-        if self.__cog_name and isinstance(value, commands.Context):
-            self.__resolve_cog(value.bot)
-
-    def __resolve_cog(self, bot: BotBase):
-        self.cog = bot.get_cog(self.__cog_name)
-
-    def format_command_brief(self, cmd: commands.Command) -> str:
+    def format_command_brief(self, cmd: commands.Command[Any, ..., Any]) -> str:
         return f"{self.get_command_signature(cmd)}\n{cmd.short_doc or self.no_documentation}"
 
     async def format_group_detail(self, view: HelpMenuGroup) -> _OptionalFormatReturns:
