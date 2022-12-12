@@ -20,7 +20,6 @@ _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 class MenuHelpCommand(commands.HelpCommand):
     def __init__(self, *,
                  per_page: int = 6,
-                 cog_menu: bool = True,
                  sort_commands: bool = True,
                  no_documentation: str = "No Documentation",
                  no_category: str = "No Category",
@@ -29,7 +28,6 @@ class MenuHelpCommand(commands.HelpCommand):
         super().__init__(**options)
         self.no_category: str = no_category
         self.per_page: int = per_page
-        self._cog_menu: bool = cog_menu
         self.accent_color: Union[discord.Color, int] = accent_color
         self.error_color: Union[discord.Color, int] = error_color
         self.no_documentation: str = no_documentation
@@ -102,7 +100,7 @@ class MenuHelpCommand(commands.HelpCommand):
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]], /) -> None:
         filtered_commands = {cog: cmds async for cog, cmds in self._filter_commands(mapping)}
         view = await self.view_provider.provide_bot_view(filtered_commands)
-        menu_kwargs = await self._form_front_bot_menu(mapping) if self._cog_menu else {}
+        menu_kwargs = await self._form_front_bot_menu(mapping)
         menu_kwargs.setdefault("view", view)
         message = await self.get_destination().send(**menu_kwargs)
         await self.initiate_view(view=view, message=message, context=self.context)
