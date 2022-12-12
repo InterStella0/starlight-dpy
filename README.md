@@ -19,15 +19,13 @@ import discord
 
 from discord.ext import commands
 
-help_command = starlight.MenuHelpCommand(
-    per_page=10,
-    cog_name="Utility Category",
-    accent_color=0xffcccb,
-    error_color=discord.Color.red()
-)
 bot = commands.Bot(
-    command_prefix="??", 
-    help_command=help_command, 
+    command_prefix="??",
+    help_command=starlight.MenuHelpCommand(
+        per_page=10,
+        accent_color=0xffcccb,
+        error_color=discord.Color.red()
+    ),
     intents=discord.Intents.all(),
     description="Demonstration bot"
 )
@@ -39,11 +37,18 @@ bot = commands.Bot(
 
 ### Customizing
 You can easily customize your help command by overriding `format_*` methods!
+
+Format methods: 
+- `format_command_brief(cmd: commands.Command)`
+- `format_cog_page(view: HelpMenuCog, data: List[commands.Command])`
+- `format_group_detail(view: HelpMenuGroup)`
+- `format_command_detail(view: HelpMenuCommand)`
+- `format_error_detail(view: HelpMenuError)`
+- `format_front_bot_menu(mapping: Dict[Optional[commands.Cog], List[commands.Command]])`
+
+**Example:**
 ```python
 class MyMenuHelpCommand(starlight.MenuHelpCommand):
-    def __init__(self):
-        super().__init__(cog_name="Utility Category", accent_color=0xffcccb)
-
     async def format_front_bot_menu(self, mapping):
         return discord.Embed(
             title="Help",
@@ -52,8 +57,16 @@ class MyMenuHelpCommand(starlight.MenuHelpCommand):
         )
 
 
-help_command = MyMenuHelpCommand()
-bot = commands.Bot(command_prefix="??", help_command=help_command, intents=discord.Intents.all())
+bot = commands.Bot(
+    command_prefix="??",
+    help_command=MyMenuHelpCommand(
+        per_page=10,
+        accent_color=0xffcccb,
+        error_color=discord.Color.red()
+    ),
+    intents=discord.Intents.all(),
+    description="Demonstration bot"
+)
 ```
 **Output**
 
