@@ -60,9 +60,16 @@ class MyMenuHelpCommand(starlight.MenuHelpCommand):
 bot = commands.Bot(
     command_prefix="??",
     help_command=MyMenuHelpCommand(
-        per_page=10,
-        accent_color=0xffcccb,
-        error_color=discord.Color.red()
+            per_page=10,
+            accent_color=0xffcccb,
+            error_color=discord.Color.red(),
+            pagination_emojis={
+                "start_button": discord.ui.Button(emoji="⏪"),
+                "previous_button": discord.ui.Button(emoji="◀️", style=discord.ButtonStyle.blurple),
+                "stop_button": discord.ui.Button(emoji="⏹️", style=discord.ButtonStyle.red),
+                "next_button": discord.ui.Button(emoji="▶️", style=discord.ButtonStyle.blurple),
+                "end_button": discord.ui.Button(emoji="⏩")
+            }
     ),
     intents=discord.Intents.all(),
     description="Demonstration bot"
