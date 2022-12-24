@@ -3,7 +3,7 @@ import re
 from setuptools import setup
 
 version_re = re.compile(r"^__version__ *= *('|\")((?:[0-9]+\.)*[0-9]+(?:\.?([a-z]+)(?:\.?[0-9])?)?)\1$", re.MULTILINE)
-with open(r'starlight/__init__.py', 'r', encoding="utf8") as r:
+with open(r'starlight/__init__.py') as r:
     ver = version_re.search(r.read())
     version = ver.group(2)
 
@@ -14,7 +14,7 @@ packages = [
     "starlight.errors",
 ]
 
-with open('README.md') as f:
+with open('README.md', encoding="utf8") as f:
     readme = f.read()
 
 with open('requirements.txt') as f:
