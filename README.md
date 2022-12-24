@@ -33,7 +33,6 @@ bot = commands.Bot(
 **Output**
 
 ![default.png](docs/images/default_menu_help.png)
-![pagination.png](docs/images/default_menu_pagination_help.png)
 
 ### Customizing
 You can easily customize your help command by overriding `format_*` methods!
