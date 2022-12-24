@@ -74,21 +74,24 @@ class SimplePaginationView(ViewEnhanced):
         self.message: Optional[discord.Message] = message
         self.context: Optional[commands.Context] = None
         self._configuration: Dict[str, discord.ui.Button] = {}
-        self._default_configuration()
         self._init_configuration()
-        self.disable_buttons_checker()
 
-    def _default_configuration(self):
+    def _default_configuration(self) -> None:
         valid = {"start_button", "stop_button", "next_button", "end_button", "previous_button"}
         for key, value in SimplePaginationView.__dict__.items():
-            instance_value = type(self).__dict__.get(key, discord.utils.MISSING)
+            cls_value = type(self).__dict__.get(key, discord.utils.MISSING)
+            instance_value = self.__dict__.get(key, discord.utils.MISSING)
+            if instance_value is discord.utils.MISSING:
+                instance_value = cls_value
+
             if key in valid:
                 if isinstance(instance_value, discord.ui.Button):
                     self._configuration.update({key: instance_value})
                 elif instance_value is discord.utils.MISSING:
                     self._configuration.update({key: value})
 
-    def _init_configuration(self):
+    def _init_configuration(self) -> None:
+        self._default_configuration()
         for name, button in self._configuration.items():
             button_name, _, suffix = name.partition("_")
             if suffix.casefold() != "button":
@@ -102,6 +105,8 @@ class SimplePaginationView(ViewEnhanced):
             button._view = self
             setattr(self, callback.__name__, button)
             self.add_item(button)
+
+        self.disable_buttons_checker()
 
     @property
     def current_page(self) -> int:
@@ -138,7 +143,7 @@ class SimplePaginationView(ViewEnhanced):
     async def format_page(self, interaction: discord.Interaction, data: List[T]) -> Union[discord.Embed, Dict[str, Any], str]:
         raise NotImplementedError("Format page was not implemented.")
 
-    def disable_buttons_checker(self):
+    def disable_buttons_checker(self) -> None:
         for key in ["start_button", "previous_button"]:
             left_button = self._configuration.get(key)
             if left_button:
@@ -163,21 +168,19 @@ class SimplePaginationView(ViewEnhanced):
             self.__current_page = previous_page
             raise e from None
 
-    async def to_start(self, interaction):
+    async def to_start(self, interaction: discord.Interaction) -> None:
         await self.change_page(interaction, 0)
 
-    async def to_previous(self, interaction):
+    async def to_previous(self, interaction: discord.Interaction) -> None:
         await self.change_page(interaction, max(self.current_page - 1, 0))
 
-    async def to_stop(self, interaction):
+    async def to_stop(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
         self.stop()
 
-    async def to_next(self, interaction):
+    async def to_next(self, interaction: discord.Interaction) -> None:
         await self.change_page(interaction, min(self.max_pages - 1, self.current_page + 1))
 
-    async def to_end(self, interaction):
+    async def to_end(self, interaction: discord.Interaction) -> None:
         await self.change_page(interaction, self.max_pages - 1)
-
-
 

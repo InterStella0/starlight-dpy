@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping
+
+from functools import cached_property
+from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.bot import BotBase
 
-from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog
+from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton
 from ..views.pagination import ViewEnhanced
 
 __all__ = (
@@ -13,7 +14,8 @@ __all__ = (
 )
 
 T = TypeVar('T')
-_MappingBotCommands = Dict[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]
+_Command = commands.Command[Any, ..., Any]
+_MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
 _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 
@@ -24,7 +26,10 @@ class MenuHelpCommand(commands.HelpCommand):
                  no_documentation: str = "No Documentation",
                  no_category: str = "No Category",
                  accent_color: Union[discord.Color, int] = discord.Color.blurple(),
-                 error_color: Union[discord.Color, int] = discord.Color.red(), **options):
+                 error_color: Union[discord.Color, int] = discord.Color.red(),
+                 pagination_emojis: Optional[Mapping[str, discord.ui.Button]] = None,
+                 cls_home_button: Type[MenuHomeButton] = MenuHomeButton,
+                 **options):
         super().__init__(**options)
         self.no_category: str = no_category
         self.per_page: int = per_page
@@ -34,11 +39,23 @@ class MenuHelpCommand(commands.HelpCommand):
         self.__sort_commands: bool = sort_commands
         self.view_provider: HelpMenuProvider = HelpMenuProvider(self)
         self.original_message: Optional[discord.Message] = None
+        self._pagination_emojis = pagination_emojis
+        self._cls_home_button = cls_home_button
 
-    def get_command_signature(self, command: commands.Command[Any, ..., Any], /) -> str:
+    @cached_property
+    def pagination_emojis(self) -> Mapping[str, discord.ui.Button]:
+        return self._pagination_emojis or {
+            "start_button": discord.ui.Button(emoji="⏪"),
+            "previous_button": discord.ui.Button(emoji="◀️"),
+            "stop_button": discord.ui.Button(emoji="⏹️"),
+            "next_button": discord.ui.Button(emoji="▶️"),
+            "end_button": discord.ui.Button(emoji="⏩")
+        }
+
+    def get_command_signature(self, command: _Command, /) -> str:
         return f'{self.context.clean_prefix}{command.qualified_name} {command.signature}'
 
-    def format_command_brief(self, cmd: commands.Command[Any, ..., Any]) -> str:
+    def format_command_brief(self, cmd: _Command) -> str:
         return f"{self.get_command_signature(cmd)}\n{cmd.short_doc or self.no_documentation}"
 
     async def format_group_detail(self, view: HelpMenuGroup) -> _OptionalFormatReturns:
@@ -90,14 +107,14 @@ class MenuHelpCommand(commands.HelpCommand):
         return await self.__normalized_kwargs(self.format_error_detail, view)
 
     async def _filter_commands(self,
-                               mapping: Mapping[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]
-                               ) -> Mapping[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]:
+                               mapping: Mapping[Optional[commands.Cog], List[_Command]]
+                               ) -> Mapping[Optional[commands.Cog], List[_Command]]:
         for cog, cmds in mapping.items():
             filtered = await self.filter_commands(cmds, sort=self.__sort_commands)
             if filtered:
                 yield cog, filtered
 
-    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]], /) -> None:
+    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[_Command]], /) -> None:
         filtered_commands = {cog: cmds async for cog, cmds in self._filter_commands(mapping)}
         view = await self.view_provider.provide_bot_view(filtered_commands)
         menu_kwargs = await self._form_front_bot_menu(mapping)
@@ -118,11 +135,11 @@ class MenuHelpCommand(commands.HelpCommand):
         view = await self.view_provider.provide_cog_view(cog, cmds)
         await self.initiate_view(view)
 
-    async def send_command_help(self, command: commands.Command[Any, ..., Any], /) -> None:
+    async def send_command_help(self, command: _Command, /) -> None:
         view = await self.view_provider.provide_command_view(command)
         await self.initiate_view(view)
 
-    async def send_group_help(self, group: commands.Group[Any, ..., Any], /) -> None:
+    async def send_group_help(self, group: _Command, /) -> None:
         view = await self.view_provider.provide_group_view(group)
         await self.initiate_view(view)
 
@@ -146,7 +163,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         return embed
 
-    async def format_cog_page(self, view: HelpMenuCog, data: List[commands.Command]) -> _OptionalFormatReturns:
+    async def format_cog_page(self, view: HelpMenuCog, data: List[_Command]) -> _OptionalFormatReturns:
         return discord.Embed(
             title=self.resolve_cog_name(view.cog),
             description="\n".join([self.format_command_brief(cmd) for cmd in data]),

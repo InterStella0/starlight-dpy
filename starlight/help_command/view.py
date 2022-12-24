@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type
 
 import discord
 from discord.ext import commands
@@ -46,8 +46,8 @@ class MenuDropDown(discord.ui.Select):
 
 
 class MenuHomeButton(discord.ui.Button):
-    def __init__(self, original_view: HelpMenuBot, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, original_view: HelpMenuBot, *, style: discord.ButtonStyle = discord.ButtonStyle.green, **kwargs):
+        super().__init__(style=style, **kwargs)
         self.original_view = original_view
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -58,6 +58,11 @@ class MenuHomeButton(discord.ui.Button):
 
 class HelpMenuCog(SimplePaginationView):
     def __init__(self, cog: Optional[commands.Cog], help_command: MenuHelpCommand, data_source: List[commands.Command], **kwargs):
+        self.start_button = help_command.pagination_emojis.get('start_button')
+        self.previous_button = help_command.pagination_emojis.get('previous_button')
+        self.stop_button = help_command.pagination_emojis.get('stop_button')
+        self.next_button = help_command.pagination_emojis.get('next_button')
+        self.end_button = help_command.pagination_emojis.get('end_button')
         super().__init__(data_source, **kwargs)
         self.cog: Optional[commands.Cog] = cog
         self.help_command: MenuHelpCommand = help_command
@@ -68,18 +73,21 @@ class HelpMenuCog(SimplePaginationView):
 
 class HelpMenuBot(SimplePaginationView):
     start_button = end_button = stop_button = None
-    previous_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="◀️")
-    next_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="▶️")
+    previous_button: Optional[discord.ui.Button] = discord.utils.MISSING
+    next_button: Optional[discord.ui.Button] = discord.utils.MISSING
 
     def __init__(self, help_command: MenuHelpCommand, mapping: _MappingBotCommands,
-                 *, no_category: str = "No Category", cog_per_page: Optional[int] = None, **kwargs):
+                 *, no_category: str = "No Category", cog_per_page: Optional[int] = None,
+                 cls_home_button: Type[MenuHomeButton] = MenuHomeButton, **kwargs):
         self.cog_per_page: int = cog_per_page or help_command.per_page
+        self.previous_button = help_command.pagination_emojis.get('previous_button')
+        self.next_button = help_command.pagination_emojis.get('next_button')
         super().__init__(self._paginate_cogs([*mapping]), context=help_command.context, **kwargs)
         self.no_category: str = no_category
         self.help_command: MenuHelpCommand = help_command
         self._dropdown: Optional[MenuDropDown] = None
         self.__mapping = mapping
-        self._home_button = MenuHomeButton(self, label="Home")
+        self._home_button = cls_home_button(self, label="Home")
         self.__visible: bool = False
         self.remove_item(self.previous_button)
         self.remove_item(self.next_button)
@@ -206,7 +214,10 @@ class HelpMenuProvider:
         :class:`HelpMenuBot`
             The view for the MenuHelpCommand
         """
-        return HelpMenuBot(self.help_command, mapping, no_category=self.help_command.no_category)
+        help_command = self.help_command
+        return HelpMenuBot(
+            help_command, mapping, no_category=help_command.no_category, cls_home_button=help_command._cls_home_button
+        )
 
     async def provide_cog_view(self, cog: commands.Cog, cog_commands: List[commands.Command]) -> HelpMenuCog:
         """|coro|
