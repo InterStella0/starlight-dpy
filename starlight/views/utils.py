@@ -39,6 +39,10 @@ class ViewIterator:
 
     def _plug(self, item: Optional[discord.ui.Item]) -> None:
         async def callback(_: discord.ui.View, interaction: discord.Interaction, it: discord.ui.Item):
+            _callback = self.__previous_callback.get(item)
+            if _callback is not None:
+                await _callback(interaction)
+
             await self.callback(interaction, it)
 
         view = self.view

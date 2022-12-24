@@ -106,5 +106,4 @@ print("My Result:", result)
 ```
 **Note:**
 - Interaction callbacks are sequential due to async iterator.
-- Item callbacks are replaced.
 - Always go for View subclasses whenever you can.
