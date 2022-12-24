@@ -62,7 +62,7 @@ bot = commands.Bot(
             per_page=10,
             accent_color=0xffcccb,
             error_color=discord.Color.red(),
-            pagination_emojis={
+            pagination_buttons={
                 "start_button": discord.ui.Button(emoji="⏪"),
                 "previous_button": discord.ui.Button(emoji="◀️", style=discord.ButtonStyle.blurple),
                 "stop_button": discord.ui.Button(emoji="⏹️", style=discord.ButtonStyle.red),

@@ -27,7 +27,7 @@ class MenuHelpCommand(commands.HelpCommand):
                  no_category: str = "No Category",
                  accent_color: Union[discord.Color, int] = discord.Color.blurple(),
                  error_color: Union[discord.Color, int] = discord.Color.red(),
-                 pagination_emojis: Optional[Mapping[str, discord.ui.Button]] = None,
+                 pagination_buttons: Optional[Mapping[str, discord.ui.Button]] = None,
                  cls_home_button: Type[MenuHomeButton] = MenuHomeButton,
                  **options):
         super().__init__(**options)
@@ -39,12 +39,12 @@ class MenuHelpCommand(commands.HelpCommand):
         self.__sort_commands: bool = sort_commands
         self.view_provider: HelpMenuProvider = HelpMenuProvider(self)
         self.original_message: Optional[discord.Message] = None
-        self._pagination_emojis = pagination_emojis
+        self._pagination_buttons = pagination_buttons
         self._cls_home_button = cls_home_button
 
     @cached_property
-    def pagination_emojis(self) -> Mapping[str, discord.ui.Button]:
-        return self._pagination_emojis or {
+    def pagination_buttons(self) -> Mapping[str, discord.ui.Button]:
+        return self._pagination_buttons or {
             "start_button": discord.ui.Button(emoji="⏪"),
             "previous_button": discord.ui.Button(emoji="◀️"),
             "stop_button": discord.ui.Button(emoji="⏹️"),

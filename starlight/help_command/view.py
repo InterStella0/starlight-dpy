@@ -58,11 +58,12 @@ class MenuHomeButton(discord.ui.Button):
 
 class HelpMenuCog(SimplePaginationView):
     def __init__(self, cog: Optional[commands.Cog], help_command: MenuHelpCommand, data_source: List[commands.Command], **kwargs):
-        self.start_button = help_command.pagination_emojis.get('start_button')
-        self.previous_button = help_command.pagination_emojis.get('previous_button')
-        self.stop_button = help_command.pagination_emojis.get('stop_button')
-        self.next_button = help_command.pagination_emojis.get('next_button')
-        self.end_button = help_command.pagination_emojis.get('end_button')
+        btns = help_command.pagination_buttons
+        self.start_button = btns.get('start_button')
+        self.previous_button = btns.get('previous_button')
+        self.stop_button = btns.get('stop_button')
+        self.next_button = btns.get('next_button')
+        self.end_button = btns.get('end_button')
         super().__init__(data_source, **kwargs)
         self.cog: Optional[commands.Cog] = cog
         self.help_command: MenuHelpCommand = help_command
@@ -80,8 +81,9 @@ class HelpMenuBot(SimplePaginationView):
                  *, no_category: str = "No Category", cog_per_page: Optional[int] = None,
                  cls_home_button: Type[MenuHomeButton] = MenuHomeButton, **kwargs):
         self.cog_per_page: int = cog_per_page or help_command.per_page
-        self.previous_button = help_command.pagination_emojis.get('previous_button')
-        self.next_button = help_command.pagination_emojis.get('next_button')
+        btns = help_command.pagination_buttons
+        self.previous_button = btns.get('previous_button')
+        self.next_button = btns.get('next_button')
         super().__init__(self._paginate_cogs([*mapping]), context=help_command.context, **kwargs)
         self.no_category: str = no_category
         self.help_command: MenuHelpCommand = help_command
