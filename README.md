@@ -77,3 +77,34 @@ bot = commands.Bot(
 **Output**
 
 ![output.png](docs/images/customize_menu_help.png)
+
+## Inline View
+Create inline view for distinct behaviours with `starlight.view_iterator`
+```python
+@bot.command()
+async def my_command(ctx):
+    view = discord.ui.View()
+    hi_button = discord.ui.Button(label="hi")
+    view.add_item(hi_button)
+    await ctx.send("hi", view=view)
+    async for interaction, item in starlight.view_iterator(view):
+        if item is hi_button:
+            response = "hi"
+        else:
+            response = "unknown"
+        await interaction.response.send_message(response, ephemeral=True)
+```
+You can specify a `discord.ui.Item` to listen for a single item.
+Effective when you're expecting only a single interaction.
+```python
+result = None
+async for interaction, item in starlight.view_iterator(view, item=hi_button):
+    result = await view.get_my_result(interaction)
+    view.stop()  # ensure only a single sequence
+
+print("My Result:", result)
+```
+**Note:**
+- Interaction callbacks are sequential due to async iterator.
+- Item callbacks are replaced.
+- Always go for View subclasses whenever you can.
