@@ -2,7 +2,7 @@ import re
 
 from setuptools import setup
 
-version_re = re.compile(r"^__version__ *= *('|\")((?:[0-9]+\.)*[0-9]+(?:\.?([a-z]+)(?:\.?[0-9])?)?)\1$")
+version_re = re.compile(r"^__version__ *= *('|\")((?:[0-9]+\.)*[0-9]+(?:\.?([a-z]+)(?:\.?[0-9])?)?)\1$", re.MULTILINE)
 with open(r'starlight/__init__.py', 'r') as r:
     ver = version_re.search(r.read())
     version = ver.group(2)
