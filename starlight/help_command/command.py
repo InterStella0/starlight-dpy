@@ -192,20 +192,20 @@ class MenuHelpCommand(commands.HelpCommand):
             return {"embed": formed_interface}
         return {"content": formed_interface}
 
-    async def form_front_bot_menu_kwargs(self, cogs: List[commands.Cog]) -> Dict[str, Any]:
+    async def form_front_bot_menu_kwargs(self, mapping: _MappingBotCommands) -> Dict[str, Any]:
         """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
         Mostly used to resolve key arguments from `MenuHelpCommand.form_front_bot_menu`.
 
         Parameters
         ------------
-        cogs: List[commands.Cog]
-            List of cogs to be shown on a page.
+        mapping: Dict[Optional[commands.Cog], List[Command]]
+            The dictionary that is mapped on Cog and the list Command associated with it.
         Returns
         --------
         :class: Dict[str, Any]
             The keyword arguments to be given onto the `Message.edit`.
         """
-        return await self.__normalized_kwargs(self.format_front_bot_menu, cogs)
+        return await self.__normalized_kwargs(self.format_front_bot_menu, mapping)
 
     async def form_command_detail_kwargs(self, view: HelpMenuCommand) -> Dict[str, Any]:
         """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
@@ -274,7 +274,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         return new_mapping
 
-    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[_Command]], /) -> None:
+    async def send_bot_help(self, mapping: _MappingBotCommands, /) -> None:
         """Implementation of send bot help when a general help command was requested.
 
         This generally calls MenuHelpCommand.form_front_bot_menu to retrieve the interface
@@ -365,6 +365,20 @@ class MenuHelpCommand(commands.HelpCommand):
         await self.initiate_view(view)
 
     async def format_front_bot_menu(self, mapping: _MappingBotCommands) -> _OptionalFormatReturns:
+        """Interface to display a general description of all bot commands.
+
+        When the total cog exceed `MenuHelpCommand.per_page`, they are automatically paginated.
+        This is shown as the first message of the help command.
+
+        Parameters
+        ------------
+        mapping: Dict[Optional[Cog], List[Command]]
+            The mapping that will be displayed
+        Returns
+        --------
+        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+            The value to be display on the Message.
+        """
         embed = discord.Embed(
             title="Help Command",
             description=self.context.bot.description or None,
@@ -380,9 +394,24 @@ class MenuHelpCommand(commands.HelpCommand):
 
         return embed
 
-    async def format_cog_page(self, view: HelpMenuCog, data: List[_Command]) -> _OptionalFormatReturns:
+    async def format_cog_page(self, view: HelpMenuCog, cmds: List[_Command]) -> _OptionalFormatReturns:
+        """Interface to display a cog help command paginated with a list of cog
+
+        When the total commands exceed `MenuHelpCommand.per_page`, they are automatically paginated.
+
+        Parameters
+        ------------
+        view: HelpMenuCog
+            The view associated with the Cog help.
+        cmds: List[_Command]
+            A list of commands that is associated with the Cog.
+        Returns
+        --------
+        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+            The value to be display on the Message.
+        """
         return discord.Embed(
             title=self.resolve_cog_name(view.cog),
-            description="\n".join([self.format_command_brief(cmd) for cmd in data]),
+            description="\n".join([self.format_command_brief(cmd) for cmd in cmds]),
             color=self.accent_color
         )
