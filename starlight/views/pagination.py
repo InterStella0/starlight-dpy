@@ -349,4 +349,3 @@ class SimplePaginationView(ViewAuthor):
 
         """
         await self.change_page(interaction, self.max_pages - 1)
-

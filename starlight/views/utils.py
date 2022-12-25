@@ -64,8 +64,10 @@ class InlineView:
         view.stop = self.stop
 
     def _unplug(self) -> None:
+        # cleanup anext
         self.__queue.put_nowait(None)
         self.__queue.task_done()
+
         for item, callback in self.__previous_callback.items():
             item.callback = callback
 
@@ -142,9 +144,11 @@ class InlinePagination:
         view.stop = self.stop
 
     def _unplug(self) -> None:
+        # cleanup anext
         self.__queue.put_nowait(None)
         self.__queue.task_done()
 
+        # cleanup callback
         if self.__current_waiting_result and not self.__current_waiting_result.done():
             self.__current_waiting_result.set_result(None)
 
@@ -172,4 +176,3 @@ class InlinePagination:
 
 
 inline_pagination = InlinePagination
-

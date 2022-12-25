@@ -98,7 +98,7 @@ class MenuHelpCommand(commands.HelpCommand):
         """
         return f'{self.context.clean_prefix}{command.qualified_name} {command.signature}'
 
-    def format_command_brief(self, cmd: _Command) -> str:
+    def format_command_brief(self, command: _Command) -> str:
         """Retrieves the Command signature with a brief description during Command pagination.
 
         Parameters
@@ -110,7 +110,7 @@ class MenuHelpCommand(commands.HelpCommand):
         :class:`str`
             The signature for the command.
         """
-        return f"{self.get_command_signature(cmd)}\n{cmd.short_doc or self.no_documentation}"
+        return f"{self.get_command_signature(command)}\n{command.short_doc or self.no_documentation}"
 
     async def format_group_detail(self, view: HelpMenuGroup) -> _OptionalFormatReturns:
         """Interface to display a detail description of a Group command.
@@ -333,7 +333,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        cog: Command
+        command: Command
             The command instance that was requested.
         """
         view = await self.view_provider.provide_command_view(command)
