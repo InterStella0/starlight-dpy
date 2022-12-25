@@ -47,6 +47,11 @@ Format methods:
 
 **Example:**
 ```python
+import starlight
+import discord
+
+from discord.ext import commands
+
 class MyMenuHelpCommand(starlight.MenuHelpCommand):
     async def format_front_bot_menu(self, mapping):
         return discord.Embed(
@@ -82,6 +87,9 @@ bot = commands.Bot(
 Create inline view for distinct behaviours with `starlight.view_iterator`
 
 ```python
+import starlight
+import discord
+
 @bot.command()
 async def my_command(ctx):
     view = discord.ui.View()
@@ -119,6 +127,9 @@ for `Interaction`. Majority of code that was present in `discord.ext.menus`
 was dedicated for Reaction which has made it not ideal to be inherited.
 
 ```python
+import starlight
+import discord
+
 class MyPagination(starlight.SimplePaginationView):
     async def format_page(self, interaction, data):
         return discord.Embed(
@@ -146,6 +157,9 @@ similarly with Inline View. With a few changes, you're given a
 calling `format()` method.
 
 ```python
+import starlight
+import discord
+
 @bot.command()
 async def my_command(ctx):
     my_data = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]
