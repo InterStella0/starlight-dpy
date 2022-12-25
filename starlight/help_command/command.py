@@ -126,10 +126,11 @@ class MenuHelpCommand(commands.HelpCommand):
         """
         group = view.group
         subcommands = "\n".join([self.format_command_brief(cmd) for cmd in group.commands])
-        description = group.help or self.no_documentation
+        group_description = group.help or self.no_documentation
+        description = group_description + f"\n\n**Subcommands**\n{subcommands}" if subcommands else ""
         return discord.Embed(
             title=self.get_command_signature(group),
-            description=f"{description}\n\n**Subcommands**\n{subcommands}",
+            description=description,
             color=self.accent_color
         )
 
