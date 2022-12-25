@@ -277,7 +277,7 @@ class HelpMenuError(ViewEnhanced):
         self.help_command: MenuHelpCommand = help_command
         self.error = error
 
-    @discord.ui.button(label="Stop")
+    @discord.ui.button(label="Close", style=discord.ButtonStyle.red)
     async def on_click_delete(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """Implements a stop button for the error message.
 
@@ -294,7 +294,7 @@ class HelpMenuError(ViewEnhanced):
         self.stop()
         await interaction.response.defer()
 
-    async def start(self, context: commands.Context) -> None:
+    async def start(self) -> None:
         detail = await self.help_command.form_error_detail_kwargs(self)
         await super().start(**detail)
 
