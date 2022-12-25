@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type
 import discord
 from discord.ext import commands
 
-from ..views.pagination import SimplePaginationView, ViewEnhanced
+from ..views.pagination import SimplePaginationView, ViewAuthor
 
 if TYPE_CHECKING:
     from .command import MenuHelpCommand
@@ -208,7 +208,7 @@ class HelpMenuBot(SimplePaginationView):
         await pagination.start(self.help_command.context, message=self.help_command.original_message)
 
 
-class HelpMenuCommand(ViewEnhanced):
+class HelpMenuCommand(ViewAuthor):
     """Implements a View on a command for the MenuHelpCommand.
 
     This class should be inherited when changing the MenuHelpCommand command menu and
@@ -233,7 +233,7 @@ class HelpMenuCommand(ViewEnhanced):
         await super().start(**kwargs)
 
 
-class HelpMenuGroup(ViewEnhanced):
+class HelpMenuGroup(ViewAuthor):
     """Implements a View on a group for the MenuHelpCommand.
 
     This class should be inherited when changing the MenuHelpCommand group menu and
@@ -258,7 +258,7 @@ class HelpMenuGroup(ViewEnhanced):
         await super().start(**kwargs)
 
 
-class HelpMenuError(ViewEnhanced):
+class HelpMenuError(ViewAuthor):
     """Implements a View on an error message for the MenuHelpCommand.
 
     This class should be inherited when changing the MenuHelpCommand error menu and

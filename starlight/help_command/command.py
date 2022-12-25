@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 
 from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton
-from ..views.pagination import ViewEnhanced
+from ..views.pagination import ViewAuthor
 
 __all__ = (
     "MenuHelpCommand",
@@ -305,7 +305,7 @@ class MenuHelpCommand(commands.HelpCommand):
         **kwargs: Any
             Key arguments to be passed onto the `Message.send` or View.start if ViewEnhanced is passed.
         """
-        if isinstance(view, ViewEnhanced):
+        if isinstance(view, ViewAuthor):
             await view.start(**kwargs)
             self.original_message = view.message
             return
