@@ -7,12 +7,12 @@ from discord.ui.view import _ViewCallback
 
 
 __all__ = (
-    "view_iterator",
-    "ViewIterator",
+    "inline_view",
+    "InlineView",
 )
 
 
-class ViewIterator:
+class InlineView:
     def __init__(self, view: discord.ui.View, *, item: Optional[discord.ui.Item] = None) -> None:
         self.view: discord.ui.View = view
         self._result: Optional[Tuple[discord.Interaction, discord.ui.Item]] = None
@@ -66,7 +66,7 @@ class ViewIterator:
         view.on_timeout = self.__timeout_callback
         view.stop = self.__stop_callback
 
-    def __aiter__(self) -> ViewIterator:
+    def __aiter__(self) -> InlineView:
         return self
 
     async def __anext__(self) -> Tuple[discord.Interaction, discord.ui.Item]:
@@ -76,4 +76,4 @@ class ViewIterator:
         return value
 
 
-view_iterator = ViewIterator
+inline_view = InlineView
