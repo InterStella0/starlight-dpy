@@ -225,16 +225,19 @@ class SimplePaginationView(ViewAuthor):
             return {"embed": formed_page}
         return {"content": formed_page}
 
-    async def __get_message_kwargs(self, interaction: Optional[discord.Interaction], data: T) -> Dict[str, Any]:
+    async def __get_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
+                                   ) -> Optional[Dict[str, Any]]:
         return await self.__get_kwargs_from_page(interaction, data)
 
-    async def format_page(self, interaction: discord.Interaction, data: T) -> Union[discord.Embed, Dict[str, Any], str]:
+    async def format_page(self, interaction: Optional[discord.Interaction], data: T
+                          ) -> Optional[Union[discord.Embed, Dict[str, Any], str]]:
         """Implementation for each page should be written in this method.
 
         Parameters
         ------------
-        interaction: Interaction
-            The context associated with the interaction.
+        interaction: Optional[Interaction]
+            The interaction associated with the view. Can be None when context.interaction is None during the initial
+            message send.
         data: T
             The data that will be on each page. This type is based on `data_source`.
 
@@ -275,6 +278,11 @@ class SimplePaginationView(ViewAuthor):
         try:
             self.disable_buttons_checker()
             kwargs = await self.__get_message_kwargs(interaction, self._data_source[page])
+            if kwargs is None:
+                if not interaction.response.is_done():
+                    await interaction.response.defer()
+                return
+
             if interaction.response.is_done():
                 await self.message.edit(view=self, **kwargs)
             else:
