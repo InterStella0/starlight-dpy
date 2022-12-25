@@ -22,23 +22,47 @@ _MappingBotCommands = Dict[Optional[commands.Cog], List[commands.Command[Any, ..
 _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 class MenuDropDown(discord.ui.Select):
-    def __init__(self, cogs: List[commands.Cog], *, no_category: str = "No Category", **kwargs):
+    """Represents a Select for the MenuHelpCommand.
+
+    This class should be inherited when changing the MenuHelpCommand select.
+
+    Parameters
+    -----------
+    cogs: List[Cog]
+        List of cogs to be shown on the dropdown.
+    no_category: :class: `str`
+        The text that will be displayed when
+    """
+
+    def __init__(self, cogs: List[Optional[commands.Cog]], *, no_category: str = "No Category", **kwargs) -> None:
         super().__init__(**kwargs)
-        self.__cog_selections: List[commands.Cog] = cogs
+        self.__cog_selections: List[Optional[commands.Cog]] = cogs
         self.__cog_mapping: Dict[Optional[str], commands.Cog] = {}
         self.selected_cog: Optional[commands.Cog] = None
         self.no_category = no_category
         self.__create_dropdowns()
 
-    async def callback(self, interaction: discord.Interaction) -> Any:
+    async def callback(self, interaction: discord.Interaction) -> None:
         resolved = self.values or [None]
         self.selected_cog = self.__cog_mapping.get(resolved[0])
         await self.view.toggle_interface(interaction)
 
-    def form_category_option(self, cog: Optional[commands.Cog]):
+    def form_category_option(self, cog: Optional[commands.Cog]) -> Dict[str, Any]:
+        """Format for a cog that will be passed onto the SelectOption.
+
+        Parameters
+        -----------
+        cog: Optional[commands.Cog]
+            A cog that will be formatted. This can be None.
+
+        Returns
+        --------
+         Dict[`str`, Any]
+            The dictionary that will be passed as a SelectOption key arguments.
+        """
         return dict(label=getattr(cog, "qualified_name", None) or self.no_category)
 
-    def __create_dropdowns(self):
+    def __create_dropdowns(self) -> None:
         for cog in self.__cog_selections:
             option = discord.SelectOption(**self.form_category_option(cog))
             self.append_option(option)
@@ -46,6 +70,19 @@ class MenuDropDown(discord.ui.Select):
 
 
 class MenuHomeButton(discord.ui.Button):
+    """Represents a home button for the MenuHelpCommand.
+
+    This class should be inherited when changing the MenuHelpCommand home button and provided with the `cls_home_button`
+    key arguments.
+
+    Parameters
+    -----------
+    original_view: HelpMenuBot
+        The view that is associated with the button for toggling.
+    style: discord.ButtonStyle
+        Style of the button. Defaults to `discord.ButtonStyle.green`.
+    """
+
     def __init__(self, original_view: HelpMenuBot, *, style: discord.ButtonStyle = discord.ButtonStyle.green, **kwargs):
         super().__init__(style=style, **kwargs)
         self.original_view = original_view
@@ -57,7 +94,22 @@ class MenuHomeButton(discord.ui.Button):
 
 
 class HelpMenuCog(SimplePaginationView):
-    def __init__(self, cog: Optional[commands.Cog], help_command: MenuHelpCommand, data_source: List[commands.Command], **kwargs):
+    """Represents a cog pagination for the MenuHelpCommand.
+
+    This class should be inherited when changing the MenuHelpCommand home button and provided with the `cls_home_button`
+    key arguments.
+
+    Parameters
+    -----------
+    cog: Optional[commands.Cog]
+        The cog associated with the list of data sources.
+    help_command: MenuHelpCommand
+        The help command that is associated with this view.
+    data_source: List[List[commands.Command]]
+        The chunks of commands that will be display.
+
+    """
+    def __init__(self, cog: Optional[commands.Cog], help_command: MenuHelpCommand, data_source: List[List[commands.Command]], **kwargs: Any) -> None:
         btns = help_command.pagination_buttons
         self.start_button = btns.get('start_button')
         self.previous_button = btns.get('previous_button')
@@ -73,6 +125,26 @@ class HelpMenuCog(SimplePaginationView):
 
 
 class HelpMenuBot(SimplePaginationView):
+    """Represents a cog pagination for the MenuHelpCommand that occurs when a general help command was requested.
+
+    This class should be inherited when changing the MenuHelpCommand send_bot_help view and override
+    `HelpMenuProvider.provide_bot_view`.
+
+    Parameters
+    -----------
+    help_command: MenuHelpCommand
+        The help command that is associated with this view.
+    mapping: Dict[Optional[Cog], List[Command]]
+        The full mapping of commands and Cog that will be display.
+    no_category: :class: `str`
+        The text that will be displayed when a cog is None. Defaults to 'No Category'.
+    cog_per_page: Optional[:class: `int`]
+        The amount of cogs that are displayed in a given page. Defaults to `MenuHelpCommand.per_page`.
+    cls_home_button: Type[MenuHomeButton]
+        The class that will be instantiate for the home button. This is to toggle the view between the list of cogs
+        and the selected cog command lists. Defaults to `MenuHomeButton`.
+
+    """
     start_button = end_button = stop_button = None
     previous_button: Optional[discord.ui.Button] = discord.utils.MISSING
     next_button: Optional[discord.ui.Button] = discord.utils.MISSING
@@ -97,7 +169,7 @@ class HelpMenuBot(SimplePaginationView):
     def _paginate_cogs(self, cogs: List[Optional[commands.Cog]]) -> List[List[Optional[commands.Cog]]]:
         return discord.utils.as_chunks(cogs, self.cog_per_page)
 
-    def _generate_dropdown(self, cogs: List[commands.Cog], **kwargs) -> MenuDropDown:
+    def _generate_dropdown(self, cogs: List[Optional[commands.Cog]], **kwargs) -> MenuDropDown:
         return MenuDropDown(cogs, no_category=self.no_category, **kwargs)
 
     def _generate_navigation(self):
@@ -107,7 +179,7 @@ class HelpMenuBot(SimplePaginationView):
                     self.remove_item(btn)
                 self.add_item(btn)
 
-    async def format_page(self, interaction: discord.Interaction, data: List[commands.Cog]) -> _OptionalFormatReturns:
+    async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]) -> _OptionalFormatReturns:
         mapping = {}
         for cog in data:
             mapping[cog] = self.__mapping[cog]
@@ -118,7 +190,7 @@ class HelpMenuBot(SimplePaginationView):
         self._dropdown = self._generate_dropdown([*mapping])
         self.add_item(self._dropdown)
         self._generate_navigation()
-        return await self.help_command._form_front_bot_menu(mapping)
+        return await self.help_command.form_front_bot_menu_kwargs(mapping)
 
     async def toggle_interface(self, interaction: discord.Interaction):
         self.__visible = not self.__visible
@@ -131,13 +203,25 @@ class HelpMenuBot(SimplePaginationView):
         await self.display_cog_help(selected_cog, self.__mapping[selected_cog])
 
     async def display_cog_help(self, cog: Optional[commands.Cog], cmds: List[commands.Command]):
-        chunks = discord.utils.as_chunks(cmds, self.help_command.per_page)
-        pagination = HelpMenuCog(cog, self.help_command, chunks)
+        pagination = await self.help_command.view_provider.provide_cog_view(cog, cmds)
         pagination.add_item(self._home_button)
         await pagination.start(self.help_command.context, message=self.help_command.original_message)
 
 
 class HelpMenuCommand(ViewEnhanced):
+    """Implements a View on a command for the MenuHelpCommand.
+
+    This class should be inherited when changing the MenuHelpCommand command menu and
+    override the `HelpMenuProvider.provide_command_view`.
+
+    Parameters
+    -----------
+    help_command: MenuHelpCommand
+        The help command that is associated with this view.
+    command: Command
+        The command that will be display.
+
+    """
     def __init__(self, help_command: MenuHelpCommand, command: commands.Command, **kwargs):
         super().__init__(context=help_command.context, **kwargs)
         self.help_command: MenuHelpCommand = help_command
@@ -145,11 +229,24 @@ class HelpMenuCommand(ViewEnhanced):
 
     async def start(self):
         help_command = self.help_command
-        kwargs = await help_command._form_command_detail(self)
+        kwargs = await help_command.form_command_detail_kwargs(self)
         await super().start(**kwargs)
 
 
 class HelpMenuGroup(ViewEnhanced):
+    """Implements a View on a group for the MenuHelpCommand.
+
+    This class should be inherited when changing the MenuHelpCommand group menu and
+    override the `HelpMenuProvider.provide_group_view`.
+
+    Parameters
+    -----------
+    help_command: MenuHelpCommand
+        The help command that is associated with this view.
+    group: Group
+        The group that will be display.
+
+    """
     def __init__(self, help_command: MenuHelpCommand, group: commands.Group[Any, ..., Any], **kwargs):
         super().__init__(context=help_command.context, **kwargs)
         self.help_command: MenuHelpCommand = help_command
@@ -157,23 +254,48 @@ class HelpMenuGroup(ViewEnhanced):
 
     async def start(self):
         help_command = self.help_command
-        kwargs = await help_command._form_group_detail(self)
+        kwargs = await help_command.form_group_detail_kwargs(self)
         await super().start(**kwargs)
 
 
 class HelpMenuError(ViewEnhanced):
-    def __init__(self, help_command: MenuHelpCommand, error: Exception, **kwargs):
+    """Implements a View on an error message for the MenuHelpCommand.
+
+    This class should be inherited when changing the MenuHelpCommand error menu and
+    override the `HelpMenuProvider.provide_error_view`.
+
+    Parameters
+    -----------
+    help_command: MenuHelpCommand
+        The help command that is associated with this view.
+    error: str
+        The error that will be display.
+
+    """
+    def __init__(self, help_command: MenuHelpCommand, error: str, **kwargs):
         super().__init__(delete_after=True, context=help_command.context, **kwargs)
         self.help_command: MenuHelpCommand = help_command
         self.error = error
 
     @discord.ui.button(label="Stop")
     async def on_click_delete(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        """Implements a stop button for the error message.
+
+        This essentially stop the view and defer the interaction.
+
+        Parameters
+        -----------
+        interaction: discord.Interaction
+            The interaction that called the button.
+        button: discord.ui.Button
+            The button that was clicked.
+
+        """
         self.stop()
         await interaction.response.defer()
 
     async def start(self, context: commands.Context) -> None:
-        detail = await self.help_command._form_error_detail(self)
+        detail = await self.help_command.form_error_detail_kwargs(self)
         await super().start(**detail)
 
 
@@ -218,7 +340,7 @@ class HelpMenuProvider:
         """
         help_command = self.help_command
         return HelpMenuBot(
-            help_command, mapping, no_category=help_command.no_category, cls_home_button=help_command._cls_home_button
+            help_command, mapping, no_category=help_command.no_category, cls_home_button=help_command.cls_home_button
         )
 
     async def provide_cog_view(self, cog: commands.Cog, cog_commands: List[commands.Command]) -> HelpMenuCog:
@@ -290,7 +412,7 @@ class HelpMenuProvider:
         """
         return HelpMenuGroup(self.help_command, group)
 
-    async def provide_error_view(self, error: Exception, /) -> HelpMenuError:
+    async def provide_error_view(self, error: str, /) -> HelpMenuError:
         """|coro|
 
         This method is invoke when the MenuHelpCommand.send_error_help is called.
@@ -302,8 +424,8 @@ class HelpMenuProvider:
 
         Parameters
         ------------
-        error: Exception
-            The error that occurred.
+        error: str
+            The error message that occurred.
 
         Returns
         --------
