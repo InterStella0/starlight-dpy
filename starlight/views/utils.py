@@ -157,7 +157,7 @@ class InlinePagination:
         view.on_timeout = self.__timeout_callback
         view.stop = self.__stop_callback
 
-    def __aiter__(self) -> InlineView:
+    def __aiter__(self) -> InlinePagination:
         return self
 
     async def __anext__(self) -> InlinePaginationItem:
