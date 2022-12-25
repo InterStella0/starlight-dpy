@@ -323,7 +323,7 @@ class MenuHelpCommand(commands.HelpCommand):
         """
         cmds = await self.filter_commands(cog.walk_commands(), sort=self.sort_commands)
         view = await self.view_provider.provide_cog_view(cog, cmds)
-        await self.initiate_view(view)
+        await self.initiate_view(view, context=self.context)
 
     async def send_command_help(self, command: _Command, /) -> None:
         """Implementation of send command help when a command help command was requested.
