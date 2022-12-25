@@ -57,6 +57,9 @@ class ViewAuthor(discord.ui.View):
 
         raise NotViewOwner("You cannot interact with this message.")
 
+    async def on_timeout(self) -> None:
+        await self.on_stop()
+
     def stop(self) -> None:
         super().stop()
         asyncio.create_task(self.on_stop())
