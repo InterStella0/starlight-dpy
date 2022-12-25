@@ -156,7 +156,7 @@ class HelpMenuBot(SimplePaginationView):
         btns = help_command.pagination_buttons
         self.previous_button = btns.get('previous_button')
         self.next_button = btns.get('next_button')
-        super().__init__(self._paginate_cogs([*mapping]), context=help_command.context, **kwargs)
+        super().__init__(self._paginate_cogs([*mapping]), **kwargs)
         self.no_category: str = no_category
         self.help_command: MenuHelpCommand = help_command
         self._dropdown: Optional[MenuDropDown] = None
