@@ -1,4 +1,5 @@
 import asyncio
+import copy
 from typing import List, Any, TypeVar, Union, Dict, Optional
 
 import discord
@@ -156,9 +157,9 @@ class SimplePaginationView(ViewAuthor):
 
             if key in valid:
                 if isinstance(instance_value, discord.ui.Button):
-                    self._configuration.update({key: instance_value})
+                    self._configuration.update({key: copy.deepcopy(instance_value)})
                 elif instance_value is discord.utils.MISSING:
-                    self._configuration.update({key: value})
+                    self._configuration.update({key: copy.deepcopy(value)})
 
     def _init_configuration(self) -> None:
         self._default_configuration()
