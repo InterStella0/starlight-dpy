@@ -119,7 +119,9 @@ class SimplePaginationView(ViewAuthor):
        The data source that was paginated before hand.
     delete_after: :class: `bool`
         Indicate whether to delete the message after it has been stopped or timeout. Defaults to False.
-
+    cache_page: :class: `bool`
+        Indicate whether to cache the result of format_page for better performance.
+        Defaults to False.
     Attributes
     -----------
     start_button: Optional[discord.ui.Button]
