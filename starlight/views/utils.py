@@ -160,7 +160,7 @@ class InlinePagination:
     def __aiter__(self) -> InlinePagination:
         return self
 
-    async def __anext__(self) -> InlinePaginationItem:
+    async def next(self) -> Optional[InlinePaginationItem]:
         if self.__current_waiting_result and not self.__current_waiting_result.done():
             self.__current_waiting_result.set_result(None)  # discard
             self.__current_waiting_result = None
@@ -169,7 +169,10 @@ class InlinePagination:
             asyncio.create_task(self.pagination_view.start(self.context))
             self.__is_started = True
 
-        value = await self.__queue.get()
+        return await self.__queue.get()
+
+    async def __anext__(self) -> InlinePaginationItem:
+        value = await self.next()
         if value is None:
             raise StopAsyncIteration
         return value
