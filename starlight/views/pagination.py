@@ -22,8 +22,6 @@ class ViewAuthor(discord.ui.View):
 
     Parameters
     ------------
-    context: Context
-       Context that is associated with this view.
     delete_after: :class: `bool`
         Indicate whether to delete the message after it has been stopped or timeout. Defaults to False.
     """
@@ -166,9 +164,13 @@ class SimplePaginationView(ViewAuthor):
 
             if key in valid:
                 if isinstance(instance_value, discord.ui.Button):
-                    self._configuration.update({key: copy.deepcopy(instance_value)})
+                    cpy_btn = copy.deepcopy(instance_value)
+                    self._configuration.update({key: cpy_btn})
+                    setattr(self, key, cpy_btn)
                 elif instance_value is discord.utils.MISSING:
-                    self._configuration.update({key: copy.deepcopy(value)})
+                    cpy_btn = copy.deepcopy(value)
+                    self._configuration.update({key: cpy_btn})
+                    setattr(self, key, cpy_btn)
 
     def _init_configuration(self) -> None:
         self._default_configuration()
