@@ -288,10 +288,7 @@ class MenuHelpCommand(commands.HelpCommand):
         """
         filtered_commands = await self.cog_filter_commands(mapping)
         view = await self.view_provider.provide_bot_view(filtered_commands)
-        menu_kwargs = await self.form_front_bot_menu_kwargs(mapping)
-        menu_kwargs.setdefault("view", view)
-        message = await self.get_destination().send(**menu_kwargs)
-        await self.initiate_view(view=view, message=message, context=self.context)
+        await self.initiate_view(view)
 
     async def initiate_view(self, view: Optional[discord.ui.View], **kwargs: Any) -> None:
         """Initiate the view that was given by the `HelpMenuProvider`.
@@ -303,10 +300,10 @@ class MenuHelpCommand(commands.HelpCommand):
         view: Optional[View]
             Mapping of Cog and list of Command associated with it.
         **kwargs: Any
-            Key arguments to be passed onto the `Message.send` or View.start if ViewEnhanced is passed.
+            Key arguments to be passed onto the `Message.send` or `View.start` if ViewAuthor was passed.
         """
         if isinstance(view, ViewAuthor):
-            await view.start(**kwargs)
+            await view.start(self.context, **kwargs)
             self.original_message = view.message
             return
 
@@ -324,7 +321,7 @@ class MenuHelpCommand(commands.HelpCommand):
         """
         cmds = await self.filter_commands(cog.walk_commands(), sort=self.sort_commands)
         view = await self.view_provider.provide_cog_view(cog, cmds)
-        await self.initiate_view(view, context=self.context)
+        await self.initiate_view(view)
 
     async def send_command_help(self, command: _Command, /) -> None:
         """Implementation of send command help when a command help command was requested.

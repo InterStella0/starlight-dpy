@@ -223,14 +223,14 @@ class HelpMenuCommand(ViewAuthor):
 
     """
     def __init__(self, help_command: MenuHelpCommand, command: commands.Command, **kwargs):
-        super().__init__(context=help_command.context, **kwargs)
+        super().__init__(**kwargs)
         self.help_command: MenuHelpCommand = help_command
         self.command = command
 
-    async def start(self):
+    async def start(self, context: commands.Context, *args: Any, **kwargs: Any) -> None:
         help_command = self.help_command
         kwargs = await help_command.form_command_detail_kwargs(self)
-        await super().start(**kwargs)
+        await super().start(context, *args, **kwargs)
 
 
 class HelpMenuGroup(ViewAuthor):
@@ -248,14 +248,14 @@ class HelpMenuGroup(ViewAuthor):
 
     """
     def __init__(self, help_command: MenuHelpCommand, group: commands.Group[Any, ..., Any], **kwargs):
-        super().__init__(context=help_command.context, **kwargs)
+        super().__init__(**kwargs)
         self.help_command: MenuHelpCommand = help_command
         self.group = group
 
-    async def start(self):
+    async def start(self, context: commands.Context, *args: Any, **kwargs: Any) -> None:
         help_command = self.help_command
         kwargs = await help_command.form_group_detail_kwargs(self)
-        await super().start(**kwargs)
+        await super().start(context, *args, **kwargs)
 
 
 class HelpMenuError(ViewAuthor):
@@ -273,7 +273,7 @@ class HelpMenuError(ViewAuthor):
 
     """
     def __init__(self, help_command: MenuHelpCommand, error: str, **kwargs):
-        super().__init__(delete_after=True, context=help_command.context, **kwargs)
+        super().__init__(delete_after=True, **kwargs)
         self.help_command: MenuHelpCommand = help_command
         self.error = error
 
@@ -294,9 +294,9 @@ class HelpMenuError(ViewAuthor):
         self.stop()
         await interaction.response.defer()
 
-    async def start(self) -> None:
+    async def start(self, context: commands.Context, *args: Any, **kwargs: Any) -> None:
         detail = await self.help_command.form_error_detail_kwargs(self)
-        await super().start(**detail)
+        await super().start(context, *args, **detail)
 
 
 class HelpMenuProvider:

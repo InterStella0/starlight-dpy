@@ -27,10 +27,10 @@ class ViewAuthor(discord.ui.View):
     delete_after: :class: `bool`
         Indicate whether to delete the message after it has been stopped or timeout. Defaults to False.
     """
-    def __init__(self, context: commands.Context, *, delete_after: bool = False, **kwargs):
+    def __init__(self, *, delete_after: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.delete_after: bool = delete_after
-        self.context: commands.Context = context
+        self.context: Optional[commands.Context] = None
         self.message: Optional[discord.Message] = None
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
@@ -52,7 +52,7 @@ class ViewAuthor(discord.ui.View):
             The boolean to allow the interaction to invoke the item callback.
 
         """
-        if interaction.user == self.context.author:
+        if interaction.user == getattr(self.context, "author", None):
             return True
 
         raise NotViewOwner("You cannot interact with this message.")
@@ -77,12 +77,18 @@ class ViewAuthor(discord.ui.View):
 
         await self.message.edit(view=self)
 
-    async def start(self, *args: Any, **kwargs: Any) -> None:
+    async def start(self, context: commands.Context, *args: Any, **kwargs: Any) -> None:
         """Starts the view by sending a message
 
         This should assign the message that was sent with the view.
+
+        Parameters
+        ------------
+        context: Context
+           The context that will be used to send a message.
         """
-        self.message = await self.context.send(*args, view=self, **kwargs)
+        self.context = context
+        self.message = await context.send(*args, view=kwargs.pop('view', self), **kwargs)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item[Any], /) -> None:
         """Implementation of on_error if an error occurred during the interaction.
@@ -211,11 +217,11 @@ class SimplePaginationView(ViewAuthor):
         self.context = context
 
         resolve_interaction = context.interaction
-        kwargs = await self.__get_message_kwargs(resolve_interaction, self._data_source[self.current_page])
+        kwargs = await self.get_message_kwargs(resolve_interaction, self._data_source[self.current_page])
         if message is None:
-            await super().start(**kwargs)
+            await super().start(context, **kwargs)
         else:
-            self.message = await message.edit(view=self, **kwargs)
+            self.message = await message.edit(**kwargs)
 
         if wait:
             await self.wait()
@@ -228,9 +234,12 @@ class SimplePaginationView(ViewAuthor):
             return {"embed": formed_page}
         return {"content": formed_page}
 
-    async def __get_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
-                                   ) -> Optional[Dict[str, Any]]:
-        return await self.__get_kwargs_from_page(interaction, data)
+    async def get_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
+                                 ) -> Optional[Dict[str, Any]]:
+        kwargs = await self.__get_kwargs_from_page(interaction, data)
+        if kwargs:
+            kwargs['view'] = self
+        return kwargs
 
     async def format_page(self, interaction: Optional[discord.Interaction], data: T
                           ) -> Optional[Union[discord.Embed, Dict[str, Any], str]]:
@@ -280,16 +289,16 @@ class SimplePaginationView(ViewAuthor):
         self.__current_page = page
         try:
             self.disable_buttons_checker()
-            kwargs = await self.__get_message_kwargs(interaction, self._data_source[page])
+            kwargs = await self.get_message_kwargs(interaction, self._data_source[page])
             if kwargs is None:
                 if not interaction.response.is_done():
                     await interaction.response.defer()
                 return
 
             if interaction.response.is_done():
-                await self.message.edit(view=self, **kwargs)
+                await self.message.edit(**kwargs)
             else:
-                await interaction.response.edit_message(view=self, **kwargs)
+                await interaction.response.edit_message(**kwargs)
         except Exception as e:
             self.__current_page = previous_page
             raise e from None
