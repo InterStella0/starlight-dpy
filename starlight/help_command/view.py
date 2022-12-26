@@ -30,27 +30,25 @@ class MenuDropDown(discord.ui.Select):
 
     Parameters
     -----------
-    cogs: List[Cog]
-        List of cogs to be shown on the dropdown.
     no_category: :class: `str`
         The text that will be displayed when there is no name for a category. Defaults to 'No Category'.
     no_documentation: :class: `str`
         The text that will be displayed when there is no documentation for a category.
         Defaults to 'No Documentation'.
+    placeholder: :class: `str`
+        The text that will be displayed on the Select placeholder.
+        Defaults to 'Select a category'.
     """
 
-    def __init__(self, cogs: List[Optional[commands.Cog]],
-                 *, no_category: str = "No Category",
+    def __init__(self, *, no_category: str = "No Category",
                  no_documentation: str = "No Documentation",
                  placeholder: str = "Select a category",
                  **kwargs) -> None:
         super().__init__(placeholder=placeholder, **kwargs)
-        self.__cog_selections: List[Optional[commands.Cog]] = cogs
         self.__cog_mapping: Dict[Optional[str], commands.Cog] = {}
         self.selected_cog: Optional[commands.Cog] = None
         self.no_category = no_category
         self.no_documentation = no_documentation
-        self.__create_dropdowns()
 
     async def callback(self, interaction: discord.Interaction) -> None:
         resolved = self.values or [None]
@@ -75,11 +73,14 @@ class MenuDropDown(discord.ui.Select):
         label = getattr(cog, "qualified_name", None) or self.no_category
         return discord.SelectOption(label=label, description=brief)
 
-    def __create_dropdowns(self) -> None:
-        for cog in self.__cog_selections:
+    def set_cogs(self, cogs: List[Optional[commands.Cog]]) -> None:
+        options = []
+        for cog in cogs:
             option = self.create_category_option(cog)
-            self.append_option(option)
-            self.__cog_mapping.update({option.label: cog})
+            options.append(option)
+            self.__cog_mapping[option.label] = cog
+
+        self.options = options
 
 
 class MenuHomeButton(discord.ui.Button):
@@ -195,14 +196,16 @@ class HelpMenuBot(SimplePaginationView):
         return discord.utils.as_chunks(cogs, self.cog_per_page)
 
     def generate_dropdown(self, cogs: List[Optional[commands.Cog]], **kwargs) -> MenuDropDown:
-        return MenuDropDown(cogs, no_category=self.no_category, **kwargs)
+        menu = MenuDropDown(no_category=self.no_category, **kwargs)
+        menu.set_cogs(cogs)
+        return menu
 
     async def format_view(self, interaction: Optional[discord.Interaction], data: List[Optional[commands.Cog]]) -> None:
-        if self._dropdown:
-            self.remove_item(self._dropdown)
-
-        self._dropdown = self.generate_dropdown(data, row=0)
-        self.add_item(self._dropdown)
+        if not self.current_dropdown:
+            self._dropdown = dropdown = self.generate_dropdown(data, row=0)
+            self.add_item(dropdown)
+        else:
+            self.current_dropdown.set_cogs(data)
 
     async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]) -> _OptionalFormatReturns:
         mapping = {}
