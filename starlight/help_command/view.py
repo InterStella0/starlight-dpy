@@ -197,16 +197,18 @@ class HelpMenuBot(SimplePaginationView):
     def generate_dropdown(self, cogs: List[Optional[commands.Cog]], **kwargs) -> MenuDropDown:
         return MenuDropDown(cogs, no_category=self.no_category, **kwargs)
 
+    async def format_view(self, interaction: Optional[discord.Interaction], data: List[Optional[commands.Cog]]) -> None:
+        if self._dropdown:
+            self.remove_item(self._dropdown)
+
+        self._dropdown = self.generate_dropdown(data, row=0)
+        self.add_item(self._dropdown)
+
     async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]) -> _OptionalFormatReturns:
         mapping = {}
         for cog in data:
             mapping[cog] = self.__mapping[cog]
 
-        if self._dropdown:
-            self.remove_item(self._dropdown)
-
-        self._dropdown = self.generate_dropdown([*mapping], row=0)
-        self.add_item(self._dropdown)
         return await self.help_command.form_front_bot_menu_kwargs(mapping)
 
     async def toggle_interface(self, interaction: discord.Interaction):

@@ -141,7 +141,7 @@ class MyPagination(starlight.SimplePaginationView):
 @bot.command()
 async def my_command(ctx):
     my_data = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]
-    view = MyPagination(my_data)
+    view = MyPagination(my_data, cache_page=True)
     await view.start(ctx)
 ```
 **Note: You're required to chunk your data on your own. Tips: `discord.utils.as_chunks`**
@@ -163,7 +163,7 @@ import discord
 @bot.command()
 async def my_command(ctx):
     my_data = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]
-    view = starlight.SimplePaginationView(my_data)
+    view = starlight.SimplePaginationView(my_data, cache_page=True)
     async for item in starlight.inline_pagination(view, context=ctx):
         embed = discord.Embed(
             title=f"Simple display[{view.current_page + 1}/{view.max_pages}]",
@@ -171,4 +171,6 @@ async def my_command(ctx):
         )
         item.format(embed=embed)  # keyword arguments are passed to `Message.edit`
 ```
+
+The output of this code is the equivalent of the Pagination View example.
 

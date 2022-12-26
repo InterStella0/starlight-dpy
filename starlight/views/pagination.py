@@ -143,14 +143,16 @@ class SimplePaginationView(ViewAuthor):
     next_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="▶️")
     end_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏩")
 
-    def __init__(self, data_source: List[T], /, *, delete_after: bool = False, **kwargs: Any):
+    def __init__(self, data_source: List[T], /, *, delete_after: bool = False, cache_page: bool = False, **kwargs: Any):
         super().__init__(delete_after=delete_after, **kwargs)
         copy_data_source = [*data_source]
         self._data_source: List[T] = copy_data_source
         self.__max_pages: int = len(copy_data_source)
         self.__current_page: int = 0
+        self.__cached_pages: Dict[int, Any] = {}
         self.message: Optional[discord.Message] = None
         self.context: Optional[commands.Context] = None
+        self.cache_page: bool = cache_page
         self._configuration: Dict[str, discord.ui.Button] = {}
         self._init_configuration()
 
@@ -236,9 +238,35 @@ class SimplePaginationView(ViewAuthor):
             return {"embed": formed_page}
         return {"content": formed_page}
 
+    async def format_view(self, interaction: Optional[discord.Interaction], data: T) -> None:
+        """View manipulation should be made on this callback. This is called after format_page finishes invoking.
+
+        Parameters
+        ------------
+        interaction: Optional[Interaction]
+            The interaction associated with the view. Can be None when context.interaction is None during the initial
+            message send.
+        data: T
+            The data that will be on each page. This type is based on `data_source`.
+        """
+
+    async def resolved_messge_kwargs(self, interaction: Optional[discord.Interaction], data: T
+                                     ) -> Optional[Dict[str, Any]]:
+        page = None
+        if self.cache_page:
+            page = self.__cached_pages.get(self.current_page)
+
+        if not page:
+            page = await self.__get_kwargs_from_page(interaction, data)
+            if self.cache_page:
+                self.__cached_pages[self.current_page] = page
+
+        return page
+
     async def get_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
                                  ) -> Optional[Dict[str, Any]]:
-        kwargs = await self.__get_kwargs_from_page(interaction, data)
+        kwargs = await self.resolved_messge_kwargs(interaction, data)
+        await discord.utils.maybe_coroutine(self.format_view, interaction, data)
         if kwargs:
             kwargs['view'] = self
         return kwargs
