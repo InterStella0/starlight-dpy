@@ -179,6 +179,12 @@ class HelpMenuBot(SimplePaginationView):
         self.__mapping = mapping
         self._home_button = cls_home_button(self, label="Home")
         self.__visible: bool = False
+        self._rem_navigation()
+
+    def _rem_navigation(self):
+        if self.max_pages <= 1:
+            for btn in [self.previous_button, self.next_button]:
+                self.remove_item(btn)
 
     @property
     def current_dropdown(self) -> Optional[MenuDropDown]:
