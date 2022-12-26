@@ -84,7 +84,7 @@ bot = commands.Bot(
 ![output.png](docs/images/customize_menu_help.png)
 
 ## Inline View
-Create inline view for distinct behaviours with `starlight.view_iterator`
+Create inline view for distinct behaviours with `starlight.inline_view`.
 
 ```python
 import starlight
