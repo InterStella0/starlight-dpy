@@ -30,7 +30,7 @@ class InlineView:
         self.__queue: asyncio.Queue = asyncio.Queue()
         self._plug(item)
 
-    async def on_timeout(self) -> None:
+    async def _on_timeout(self) -> None:
         self.__is_timeout = True
         self.stop()
         if self.__timeout_callback:
@@ -41,7 +41,7 @@ class InlineView:
         if not self.__is_timeout and self.__stop_callback:
             self.__stop_callback()
 
-    async def callback(self, interaction: discord.Interaction, item: discord.ui.Item) -> None:
+    async def _callback(self, interaction: discord.Interaction, item: discord.ui.Item) -> None:
         await self.__queue.put((interaction, item))
 
     def _plug(self, item: Optional[discord.ui.Item]) -> None:
@@ -50,7 +50,7 @@ class InlineView:
             if _callback is not None:
                 await _callback(interaction)
 
-            await self.callback(interaction, it)
+            await self._callback(interaction, it)
 
         view = self.view
 
@@ -59,7 +59,7 @@ class InlineView:
             it.callback = _ViewCallback(callback, view, it)
 
         self.__timeout_callback = view.on_timeout
-        view.on_timeout = self.on_timeout
+        view.on_timeout = self._on_timeout
         self.__stop_callback = view.stop
         view.stop = self.stop
 
@@ -114,7 +114,7 @@ class InlinePagination:
         self.__is_started = False
         self._plug()
 
-    async def on_timeout(self) -> None:
+    async def _on_timeout(self) -> None:
         self.__is_timeout = True
         self.stop()
         if self.__timeout_callback:
@@ -139,7 +139,7 @@ class InlinePagination:
         view.format_page = self._callback
 
         self.__timeout_callback = view.on_timeout
-        view.on_timeout = self.on_timeout
+        view.on_timeout = self._on_timeout
         self.__stop_callback = view.stop
         view.stop = self.stop
 
