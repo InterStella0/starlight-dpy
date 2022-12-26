@@ -73,11 +73,11 @@ class MenuHelpCommand(commands.HelpCommand):
     @property
     def pagination_buttons(self) -> Mapping[str, discord.ui.Button]:
         return self._pagination_buttons or {
-            "start_button": discord.ui.Button(emoji="⏪"),
-            "previous_button": discord.ui.Button(emoji="◀️"),
-            "stop_button": discord.ui.Button(emoji="⏹️"),
-            "next_button": discord.ui.Button(emoji="▶️"),
-            "end_button": discord.ui.Button(emoji="⏩")
+            "start_button": discord.ui.Button(emoji="⏪", row=1),
+            "previous_button": discord.ui.Button(emoji="◀️", row=1),
+            "stop_button": discord.ui.Button(emoji="⏹️", row=1),
+            "next_button": discord.ui.Button(emoji="▶️", row=1),
+            "end_button": discord.ui.Button(emoji="⏩", row=1)
         }
 
     @pagination_buttons.setter

@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import textwrap
 from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type
 
 import discord
@@ -31,15 +33,23 @@ class MenuDropDown(discord.ui.Select):
     cogs: List[Cog]
         List of cogs to be shown on the dropdown.
     no_category: :class: `str`
-        The text that will be displayed when
+        The text that will be displayed when there is no name for a category. Defaults to 'No Category'.
+    no_documentation: :class: `str`
+        The text that will be displayed when there is no documentation for a category.
+        Defaults to 'No Documentation'.
     """
 
-    def __init__(self, cogs: List[Optional[commands.Cog]], *, no_category: str = "No Category", **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, cogs: List[Optional[commands.Cog]],
+                 *, no_category: str = "No Category",
+                 no_documentation: str = "No Documentation",
+                 placeholder: str = "Select a category",
+                 **kwargs) -> None:
+        super().__init__(placeholder=placeholder, **kwargs)
         self.__cog_selections: List[Optional[commands.Cog]] = cogs
         self.__cog_mapping: Dict[Optional[str], commands.Cog] = {}
         self.selected_cog: Optional[commands.Cog] = None
         self.no_category = no_category
+        self.no_documentation = no_documentation
         self.__create_dropdowns()
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -47,8 +57,8 @@ class MenuDropDown(discord.ui.Select):
         self.selected_cog = self.__cog_mapping.get(resolved[0])
         await self.view.toggle_interface(interaction)
 
-    def form_category_option(self, cog: Optional[commands.Cog]) -> Dict[str, Any]:
-        """Format for a cog that will be passed onto the SelectOption.
+    def create_category_option(self, cog: Optional[commands.Cog]) -> discord.SelectOption:
+        """A method that creates SelectOption for a particular cog.
 
         Parameters
         -----------
@@ -57,14 +67,17 @@ class MenuDropDown(discord.ui.Select):
 
         Returns
         --------
-         Dict[`str`, Any]
-            The dictionary that will be passed as a SelectOption key arguments.
+        SelectOption
+            The SelectOption that will be appended to the MenuDropDown.
         """
-        return dict(label=getattr(cog, "qualified_name", None) or self.no_category)
+        docs = getattr(cog, "description", None) or self.no_documentation
+        brief = textwrap.shorten(docs, width=90, placeholder="...")
+        label = getattr(cog, "qualified_name", None) or self.no_category
+        return discord.SelectOption(label=label, description=brief)
 
     def __create_dropdowns(self) -> None:
         for cog in self.__cog_selections:
-            option = discord.SelectOption(**self.form_category_option(cog))
+            option = self.create_category_option(cog)
             self.append_option(option)
             self.__cog_mapping.update({option.label: cog})
 
@@ -81,10 +94,13 @@ class MenuHomeButton(discord.ui.Button):
         The view that is associated with the button for toggling.
     style: discord.ButtonStyle
         Style of the button. Defaults to `discord.ButtonStyle.green`.
+    row: :class: `int`
+        The row position of the button. Defaults to 2.
     """
 
-    def __init__(self, original_view: HelpMenuBot, *, style: discord.ButtonStyle = discord.ButtonStyle.green, **kwargs):
-        super().__init__(style=style, **kwargs)
+    def __init__(self, original_view: HelpMenuBot,
+                 *, style: discord.ButtonStyle = discord.ButtonStyle.green, row: int = 2, **kwargs):
+        super().__init__(style=style, row=row, **kwargs)
         self.original_view = original_view
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -163,21 +179,17 @@ class HelpMenuBot(SimplePaginationView):
         self.__mapping = mapping
         self._home_button = cls_home_button(self, label="Home")
         self.__visible: bool = False
-        self.remove_item(self.previous_button)
-        self.remove_item(self.next_button)
+
+    @property
+    def current_dropdown(self) -> Optional[MenuDropDown]:
+        """Current generated dropdown. Defaults to None before pagination starts."""
+        return self._dropdown
 
     def _paginate_cogs(self, cogs: List[Optional[commands.Cog]]) -> List[List[Optional[commands.Cog]]]:
         return discord.utils.as_chunks(cogs, self.cog_per_page)
 
-    def _generate_dropdown(self, cogs: List[Optional[commands.Cog]], **kwargs) -> MenuDropDown:
+    def generate_dropdown(self, cogs: List[Optional[commands.Cog]], **kwargs) -> MenuDropDown:
         return MenuDropDown(cogs, no_category=self.no_category, **kwargs)
-
-    def _generate_navigation(self):
-        if self.max_pages > 1:
-            for btn in (self.previous_button, self.next_button):
-                if btn in self.children:
-                    self.remove_item(btn)
-                self.add_item(btn)
 
     async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]) -> _OptionalFormatReturns:
         mapping = {}
@@ -187,9 +199,8 @@ class HelpMenuBot(SimplePaginationView):
         if self._dropdown:
             self.remove_item(self._dropdown)
 
-        self._dropdown = self._generate_dropdown([*mapping])
+        self._dropdown = self.generate_dropdown([*mapping], row=0)
         self.add_item(self._dropdown)
-        self._generate_navigation()
         return await self.help_command.form_front_bot_menu_kwargs(mapping)
 
     async def toggle_interface(self, interaction: discord.Interaction):
