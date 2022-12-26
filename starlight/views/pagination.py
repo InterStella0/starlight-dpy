@@ -146,7 +146,7 @@ class SimplePaginationView(ViewAuthor):
     end_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏩")
 
     def __init__(self, data_source: List[T], /, *, delete_after: bool = False, **kwargs: Any):
-        super().__init__(context=None, delete_after=delete_after, **kwargs)
+        super().__init__(delete_after=delete_after, **kwargs)
         copy_data_source = [*data_source]
         self._data_source: List[T] = copy_data_source
         self.__max_pages: int = len(copy_data_source)
