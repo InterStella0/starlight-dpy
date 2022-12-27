@@ -131,8 +131,8 @@ class SimplePaginationView(ViewAuthor):
         The initial message that was sent to the user to be overwritten every interaction.
     """
 
-    def __init__(self, data_source: List[T], /, *, delete_after: bool = False, cache_page: bool = False, **kwargs: Any):
-        super().__init__(delete_after=delete_after, **kwargs)
+    def __init__(self, data_source: List[T], /, *, cache_page: bool = False, **kwargs: Any):
+        super().__init__(**kwargs)
         self._data_source: List[T] = [*data_source]
         self.__max_pages: int = len(self._data_source)
         self.__current_page: int = 0
