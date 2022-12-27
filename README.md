@@ -1,10 +1,12 @@
 # starlight-dpy
 A utility library that she uses for discord.py
 
-This 'library' is still in pre-alpha. Major changes will be made
-and the final version is unclear.
+This 'library' is still in pre-alpha. This is still
+actively being develop and major changes _may_ be made.
 
-Do not use this in a production code.
+Feel free to open an issue if you found any bugs!
+
+**Do not use this in production.**
 
 ### Installation
 ```

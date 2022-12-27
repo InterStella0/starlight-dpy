@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import itertools
 import textwrap
-from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type
+from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type, Mapping
 
 import discord
 from discord.ext import commands
@@ -127,15 +128,22 @@ class HelpMenuCog(SimplePaginationView):
 
     """
     def __init__(self, cog: Optional[commands.Cog], help_command: MenuHelpCommand, data_source: List[List[commands.Command]], **kwargs: Any) -> None:
-        btns = help_command.pagination_buttons
-        self.start_button = btns.get('start_button')
-        self.previous_button = btns.get('previous_button')
-        self.stop_button = btns.get('stop_button')
-        self.next_button = btns.get('next_button')
-        self.end_button = btns.get('end_button')
         super().__init__(data_source, **kwargs)
+        self._manipulate_buttons(help_command.pagination_buttons)
+        self.disable_buttons_checker()
         self.cog: Optional[commands.Cog] = cog
         self.help_command: MenuHelpCommand = help_command
+
+    def _manipulate_buttons(self, source: Mapping[str, discord.ui.Button]) -> None:
+        for key, value in source.items():
+            btn = getattr(self, key, None)
+            if btn is None or value is None:
+                continue
+
+            self.remove_item(btn)
+            btn._underlying = value._underlying
+            btn.row = value.row
+            self.add_item(btn)
 
     async def format_page(self, interaction: discord.Interaction, data: List[commands.Command]) -> Dict[str, Any]:
         return await discord.utils.maybe_coroutine(self.help_command.format_cog_page, self, data)
@@ -162,18 +170,13 @@ class HelpMenuBot(SimplePaginationView):
         and the selected cog command lists. Defaults to `MenuHomeButton`.
 
     """
-    start_button = end_button = stop_button = None
-    previous_button: Optional[discord.ui.Button] = discord.utils.MISSING
-    next_button: Optional[discord.ui.Button] = discord.utils.MISSING
 
     def __init__(self, help_command: MenuHelpCommand, mapping: _MappingBotCommands,
                  *, no_category: str = "No Category", cog_per_page: Optional[int] = None,
                  cls_home_button: Type[MenuHomeButton] = MenuHomeButton, **kwargs):
         self.cog_per_page: int = cog_per_page or help_command.per_page
-        btns = help_command.pagination_buttons
-        self.previous_button = btns.get('previous_button')
-        self.next_button = btns.get('next_button')
         super().__init__(self._paginate_cogs([*mapping]), **kwargs)
+        self._manipulate_buttons(help_command.pagination_buttons)
         self.no_category: str = no_category
         self.help_command: MenuHelpCommand = help_command
         self._dropdown: Optional[MenuDropDown] = None
@@ -181,6 +184,21 @@ class HelpMenuBot(SimplePaginationView):
         self._home_button = cls_home_button(self, label="Home")
         self.__visible: bool = False
         self._rem_navigation()
+
+    def _manipulate_buttons(self, source: Mapping[str, discord.ui.Button]) -> None:
+        required = ['previous_button', 'next_button']
+        remove = ['stop_button', 'start_button', 'end_button']
+        for key in itertools.chain(required, remove):
+            btn = getattr(self, key, None)
+            value = source.get(key)
+            if btn is None or value is None:
+                continue
+
+            self.remove_item(btn)
+            if key not in remove:
+                btn._underlying = value._underlying
+                btn.row = value.row
+                self.add_item(btn)
 
     def _rem_navigation(self):
         if self.max_pages <= 1:
