@@ -58,9 +58,10 @@ class ViewAuthor(discord.ui.View):
     async def on_timeout(self) -> None:
         await self.on_stop()
 
-    def stop(self) -> None:
+    def stop(self, *, on_stop: bool = True) -> None:
         super().stop()
-        asyncio.create_task(self.on_stop())
+        if on_stop:
+            asyncio.create_task(self.on_stop())
 
     async def on_stop(self):
         if self.message is None:

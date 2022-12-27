@@ -257,6 +257,9 @@ class HelpMenuBot(SimplePaginationView):
     async def toggle_interface(self, interaction: discord.Interaction):
         self.__visible = not self.__visible
         if not self.__visible:
+            if self._pagination_cog_view:
+                self._pagination_cog_view.stop(on_stop=False)
+                self._pagination_cog_view = None
             await self.change_page(interaction, self.current_page)
             return
 
@@ -265,9 +268,17 @@ class HelpMenuBot(SimplePaginationView):
         await self.display_cog_help(selected_cog, self.__mapping[selected_cog])
 
     async def display_cog_help(self, cog: Optional[commands.Cog], cmds: List[commands.Command]):
-        pagination = await self.help_command.view_provider.provide_cog_view(cog, cmds)
+        self._pagination_cog_view = pagination = await self.help_command.view_provider.provide_cog_view(cog, cmds)
         pagination.add_item(self._home_button)
         await pagination.start(self.help_command.context, message=self.help_command.original_message)
+
+        async def _scheduled_task(*args, **kwargs):
+            self.timeout = self.timeout
+            await task_callback(*args, **kwargs)
+
+        task_callback = pagination._scheduled_task
+        pagination._scheduled_task = _scheduled_task
+
 
 
 class HelpMenuCommand(ViewAuthor):
