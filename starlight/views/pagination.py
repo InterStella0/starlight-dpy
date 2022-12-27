@@ -122,77 +122,46 @@ class SimplePaginationView(ViewAuthor):
     cache_page: :class: `bool`
         Indicate whether to cache the result of format_page for better performance.
         Defaults to False.
+
     Attributes
     -----------
-    start_button: Optional[discord.ui.Button]
-        The button that will set the page onto the first page. This can be overwritten during class definition.
-    previous_button: Optional[discord.ui.Button]
-        The button that will set the page onto the previous page. This can be overwritten during class definition.
-    stop_button: Optional[discord.ui.Button]
-        The button that will stop the View. This can be overwritten during class definition.
-    next_button: Optional[discord.ui.Button]
-        The button that will set the page onto the next page. This can be overwritten during class definition.
-    end_button: Optional[discord.ui.Button]
-        The button that will set the page onto the last page. This can be overwritten during class definition.
     context: Optional[Context]
         The context that is associated with this pagination view.
     message: Optional[Message]
         The initial message that was sent to the user to be overwritten every interaction.
     """
-    start_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏪")
-    previous_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="◀️")
-    stop_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏹️")
-    next_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="▶️")
-    end_button: Optional[discord.ui.Button] = discord.ui.Button(emoji="⏩")
 
     def __init__(self, data_source: List[T], /, *, delete_after: bool = False, cache_page: bool = False, **kwargs: Any):
         super().__init__(delete_after=delete_after, **kwargs)
-        copy_data_source = [*data_source]
-        self._data_source: List[T] = copy_data_source
-        self.__max_pages: int = len(copy_data_source)
+        self._data_source: List[T] = [*data_source]
+        self.__max_pages: int = len(self._data_source)
         self.__current_page: int = 0
         self.__cached_pages: Dict[int, Any] = {}
         self.message: Optional[discord.Message] = None
         self.context: Optional[commands.Context] = None
         self.cache_page: bool = cache_page
         self._configuration: Dict[str, discord.ui.Button] = {}
-        self._init_configuration()
-
-    def _default_configuration(self) -> None:
-        valid = {"start_button", "stop_button", "next_button", "end_button", "previous_button"}
-        for key, value in SimplePaginationView.__dict__.items():
-            cls_value = type(self).__dict__.get(key, discord.utils.MISSING)
-            instance_value = self.__dict__.get(key, discord.utils.MISSING)
-            if instance_value is discord.utils.MISSING:
-                instance_value = cls_value
-
-            if key in valid:
-                if isinstance(instance_value, discord.ui.Button):
-                    cpy_btn = copy.deepcopy(instance_value)
-                    self._configuration.update({key: cpy_btn})
-                    setattr(self, key, cpy_btn)
-                elif instance_value is discord.utils.MISSING:
-                    cpy_btn = copy.deepcopy(value)
-                    self._configuration.update({key: cpy_btn})
-                    setattr(self, key, cpy_btn)
-
-    def _init_configuration(self) -> None:
-        self._default_configuration()
-        for name, button in self._configuration.items():
-            button_name, _, suffix = name.partition("_")
-            if suffix.casefold() != "button":
-                continue
-
-            callback = getattr(self, "to_" + button_name, None)
-            if callback is None:
-                raise AttributeError(f"'{name}' is an invalid configuration.")
-
-            button.callback = callback
-            button._view = self
-            setattr(self, callback.__name__, button)
-            self.add_item(button)
-
         self.disable_buttons_checker()
+
+    @discord.ui.button(emoji="⏪")
+    async def start_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.to_start(interaction)
+
+    @discord.ui.button(emoji="◀️")
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.to_previous(interaction)
+
+    @discord.ui.button(emoji="⏹️")
+    async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.to_stop(interaction)
+
+    @discord.ui.button(emoji="▶️")
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.to_next(interaction)
+
+    @discord.ui.button(emoji="⏩")
+    async def end_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.to_end(interaction)
 
     @property
     def current_page(self) -> int:
@@ -297,12 +266,12 @@ class SimplePaginationView(ViewAuthor):
     def disable_buttons_checker(self) -> None:
         """Implementation to disable the buttons every page change."""
         for key in ["start_button", "previous_button"]:
-            left_button = self._configuration.get(key)
+            left_button = getattr(self, key, None)
             if left_button:
                 left_button.disabled = not self.current_page
 
         for key in ["end_button", "next_button"]:
-            right_button = self._configuration.get(key)
+            right_button = getattr(self, key, None)
             if right_button:
                 right_button.disabled = self.current_page + 1 >= self.max_pages
 
