@@ -70,11 +70,11 @@ bot = commands.Bot(
             accent_color=0xffcccb,
             error_color=discord.Color.red(),
             pagination_buttons={
-                "start_button": discord.ui.Button(emoji="⏪"),
-                "previous_button": discord.ui.Button(emoji="◀️", style=discord.ButtonStyle.blurple),
-                "stop_button": discord.ui.Button(emoji="⏹️", style=discord.ButtonStyle.red),
-                "next_button": discord.ui.Button(emoji="▶️", style=discord.ButtonStyle.blurple),
-                "end_button": discord.ui.Button(emoji="⏩")
+                "start_button": discord.ui.Button(emoji="⏪", row=1),
+                "previous_button": discord.ui.Button(emoji="◀️", style=discord.ButtonStyle.blurple, row=1),
+                "stop_button": discord.ui.Button(emoji="⏹️", style=discord.ButtonStyle.red, row=1),
+                "next_button": discord.ui.Button(emoji="▶️", style=discord.ButtonStyle.blurple, row=1),
+                "end_button": discord.ui.Button(emoji="⏩", row=1)
             }
     ),
     intents=discord.Intents.all(),
