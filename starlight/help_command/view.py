@@ -280,7 +280,6 @@ class HelpMenuBot(SimplePaginationView):
         pagination._scheduled_task = _scheduled_task
 
 
-
 class HelpMenuCommand(ViewAuthor):
     """Implements a View on a command for the MenuHelpCommand.
 

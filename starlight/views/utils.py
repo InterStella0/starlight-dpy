@@ -1,6 +1,6 @@
 from __future__ import annotations
 import asyncio
-from typing import Optional, Tuple, Any, Dict, TYPE_CHECKING, TypeVar, Union
+from typing import Optional, Tuple, Any, Dict, TYPE_CHECKING, TypeVar, Union, AsyncIterator, Generic
 
 import discord
 from discord.ext import commands
@@ -16,13 +16,30 @@ __all__ = (
     "InlinePagination",
 )
 
-T = TypeVar("T")
+T = TypeVar("T", bound="InlineIterator")
 
 
-class InlineView:
+class InlineIterator(Generic[T]):
+    async def next(self) -> Optional[T]:
+        raise NotImplementedError("Next was not implemented.")
+
+    def __aiter__(self) -> AsyncIterator[T]:
+        return self.aiter()
+
+    async def aiter(self) -> AsyncIterator[T]:
+        while True:
+            value = await self.next()
+            if value is None:
+                break
+
+            yield value
+
+
+_InlineViewReturn = Tuple[discord.Interaction, discord.ui.Item]
+class InlineView(InlineIterator[_InlineViewReturn]):
     def __init__(self, view: discord.ui.View, *, item: Optional[discord.ui.Item] = None) -> None:
         self.view: discord.ui.View = view
-        self._result: Optional[Tuple[discord.Interaction, discord.ui.Item]] = None
+        self._result: Optional[_InlineViewReturn] = None
         self.__previous_callback: Dict[discord.ui.Item, Any] = {}
         self.__timeout_callback: Any = None
         self.__is_timeout: bool = False
@@ -75,14 +92,8 @@ class InlineView:
         view.on_timeout = self.__timeout_callback
         view.stop = self.__stop_callback
 
-    def __aiter__(self) -> InlineView:
-        return self
-
-    async def __anext__(self) -> Tuple[discord.Interaction, discord.ui.Item]:
-        value = await self.__queue.get()
-        if value is None:
-            raise StopAsyncIteration
-        return value
+    async def next(self) -> Optional[_InlineViewReturn]:
+        return await self.__queue.get()
 
 
 inline_view = InlineView
@@ -101,7 +112,7 @@ class InlinePaginationItem:
         return await self._future
 
 
-class InlinePagination:
+class InlinePagination(InlineIterator[InlinePaginationItem]):
     def __init__(self, pagination_view: SimplePaginationView, context: commands.Context) -> None:
         self.pagination_view: SimplePaginationView = pagination_view
         self.context = context
@@ -157,9 +168,6 @@ class InlinePagination:
         view.on_timeout = self.__timeout_callback
         view.stop = self.__stop_callback
 
-    def __aiter__(self) -> InlinePagination:
-        return self
-
     async def next(self) -> Optional[InlinePaginationItem]:
         if self.__current_waiting_result and not self.__current_waiting_result.done():
             self.__current_waiting_result.set_result(None)  # discard
@@ -170,12 +178,6 @@ class InlinePagination:
             self.__is_started = True
 
         return await self.__queue.get()
-
-    async def __anext__(self) -> InlinePaginationItem:
-        value = await self.next()
-        if value is None:
-            raise StopAsyncIteration
-        return value
 
 
 inline_pagination = InlinePagination
