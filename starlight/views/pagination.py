@@ -1,5 +1,5 @@
+from __future__ import annotations
 import asyncio
-import copy
 from typing import List, Any, TypeVar, Union, Dict, Optional
 
 import discord
@@ -259,10 +259,10 @@ class SimplePaginationView(ViewAuthor):
         --------
         Union[Embed, Dict[str, Any], str]
             The object that will displayed onto the Message. Returning a dictionary is a keyword arguments for the
-            `Message.edit`.
+            `Message.edit`. By default this returns the str of `data` argument.
 
         """
-        raise NotImplementedError("Format page was not implemented.")
+        return str(data)
 
     def disable_buttons_checker(self) -> None:
         """Implementation to disable the buttons every page change."""
@@ -360,3 +360,7 @@ class SimplePaginationView(ViewAuthor):
 
         """
         await self.change_page(interaction, self.max_pages - 1)
+
+    @classmethod
+    def from_paginator(cls, paginator: commands.Paginator, **kwargs) -> SimplePaginationView:
+        return cls(paginator.pages, **kwargs)

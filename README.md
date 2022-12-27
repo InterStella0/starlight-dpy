@@ -148,6 +148,8 @@ async def my_command(ctx):
 ```
 **Note: You're required to chunk your data on your own. Tips: `discord.utils.as_chunks`**
 
+*Supports `commands.Paginator` with `SimplePaginationView.from_paginator` classmethod.*
+
 **Output**
 
 ![output.png](docs/images/pagination_view.png)
