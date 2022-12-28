@@ -1,6 +1,6 @@
 from __future__ import annotations
 import asyncio
-from typing import List, Any, TypeVar, Union, Dict, Optional
+from typing import List, Any, TypeVar, Union, Dict, Optional, Generic
 
 import discord
 from discord.ext import commands
@@ -12,9 +12,6 @@ __all__ = (
     "SimplePaginationView",
     "ViewAuthor"
 )
-
-
-T = TypeVar('T')
 
 
 class ViewAuthor(discord.ui.View):
@@ -108,6 +105,8 @@ class ViewAuthor(discord.ui.View):
         await super().on_error(interaction, error, item)
 
 
+T = TypeVar('T', bound='SimplePaginationView')
+
 class SimplePaginationView(ViewAuthor):
     """Implementation View pagination that is written purely without any external library.
 
@@ -144,6 +143,18 @@ class SimplePaginationView(ViewAuthor):
         self._configuration: Dict[str, discord.ui.Button] = {}
         self.disable_buttons_checker()
 
+    @property
+    def data_source(self) -> List[T]:
+        return self._data_source.copy()
+
+    async def change_source(self, data_source: List[T], *, interaction: Optional[discord.Interaction] = None, page: int = 0):
+        self._data_source = [*data_source]
+        self.__max_pages: int = len(self._data_source)
+        self.__cached_pages.clear()
+        kwargs = await self.show_page(interaction, page)
+        edit = self.message.edit if interaction is None else interaction.response.edit_message
+        await edit(**kwargs)
+
     @discord.ui.button(emoji="⏪")
     async def start_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.to_start(interaction)
@@ -169,10 +180,18 @@ class SimplePaginationView(ViewAuthor):
         """The current page of the pagination view."""
         return self.__current_page
 
+    @current_page.setter
+    def current_page(self, value: int) -> None:
+        self.__current_page = value
+
     @property
     def max_pages(self) -> int:
         """The maximum page of the pagination view that was given."""
         return self.__max_pages
+
+    async def show_page(self, interaction: Optional[discord.Interaction], page: int) -> Dict[str, Any]:
+        self.current_page = page
+        return await self.get_message_kwargs(interaction, self._data_source[page])
 
     async def start(self, context: commands.Context, *, wait: bool = False, message: Optional[discord.Message] = None) -> None:
         """Initiate the pagination view by sending the message or editing the message when Message is present.
@@ -193,7 +212,7 @@ class SimplePaginationView(ViewAuthor):
         self.context = context
 
         resolve_interaction = context.interaction
-        kwargs = await self.get_message_kwargs(resolve_interaction, self._data_source[self.current_page])
+        kwargs = await self.show_page(resolve_interaction, self.current_page)
         if message is None:
             await super().start(context, **kwargs)
         else:
@@ -222,8 +241,8 @@ class SimplePaginationView(ViewAuthor):
             The data that will be on each page. This type is based on `data_source`.
         """
 
-    async def resolved_messge_kwargs(self, interaction: Optional[discord.Interaction], data: T
-                                     ) -> Optional[Dict[str, Any]]:
+    async def resolved_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
+                                      ) -> Optional[Dict[str, Any]]:
         page = None
         if self.cache_page:
             page = self.__cached_pages.get(self.current_page)
@@ -237,7 +256,8 @@ class SimplePaginationView(ViewAuthor):
 
     async def get_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
                                  ) -> Optional[Dict[str, Any]]:
-        kwargs = await self.resolved_messge_kwargs(interaction, data)
+        kwargs = await self.resolved_message_kwargs(interaction, data)
+        self.disable_buttons_checker()
         await discord.utils.maybe_coroutine(self.format_view, interaction, data)
         if kwargs:
             kwargs['view'] = self
@@ -287,11 +307,9 @@ class SimplePaginationView(ViewAuthor):
             The page that the View will switch to.
 
         """
-        previous_page = self.__current_page
-        self.__current_page = page
+        previous_page = self.current_page
         try:
-            self.disable_buttons_checker()
-            kwargs = await self.get_message_kwargs(interaction, self._data_source[page])
+            kwargs = await self.show_page(interaction, page)
             if kwargs is None:
                 if not interaction.response.is_done():
                     await interaction.response.defer()
