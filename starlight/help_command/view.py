@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import itertools
 import textwrap
-from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type, Mapping
+from abc import ABCMeta, abstractmethod
+from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type, Mapping, Generic, TypeVar, Tuple
 
 import discord
 from discord.ext import commands
@@ -10,7 +11,7 @@ from discord.ext import commands
 from ..views.pagination import SimplePaginationView, ViewAuthor
 
 if TYPE_CHECKING:
-    from .command import MenuHelpCommand
+    from .command import MenuHelpCommand, PaginateHelpCommand
 
 __all__ = (
     "MenuDropDown",
@@ -21,7 +22,8 @@ __all__ = (
     "HelpMenuGroup",
     "HelpMenuError"
 )
-_MappingBotCommands = Dict[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]
+_Command = commands.Command[Any, ..., Any]
+_MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
 _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 class MenuDropDown(discord.ui.Select):
@@ -239,7 +241,7 @@ class HelpMenuBot(SimplePaginationView):
         menu.set_cogs(cogs)
         return menu
 
-    async def format_view(self, interaction: Optional[discord.Interaction], data: List[Optional[commands.Cog]]) -> None:
+    def format_view(self, interaction: Optional[discord.Interaction], data: List[Optional[commands.Cog]]) -> None:
         if not self.current_dropdown:
             row = min([getattr(self, x).row or 0 for x in self.navigation_buttons if hasattr(self, x)])
             self._dropdown = dropdown = self.generate_dropdown(data, row=None if row == 0 else row - 1)
@@ -252,7 +254,7 @@ class HelpMenuBot(SimplePaginationView):
         for cog in data:
             mapping[cog] = self.__mapping[cog]
 
-        return await self.help_command.form_front_bot_menu_kwargs(mapping)
+        return await self.help_command.form_bot_kwargs(self, mapping)
 
     async def toggle_interface(self, interaction: discord.Interaction):
         self.__visible = not self.__visible
@@ -371,7 +373,43 @@ class HelpMenuError(ViewAuthor):
         await super().start(context, *args, **detail)
 
 
-class HelpMenuProvider:
+T = TypeVar('T', bound='BaseHelpProvider')
+
+class BaseHelpProvider(Generic[T], metaclass=ABCMeta):
+    def __init__(self, help_command: T):
+        self.help_command: T = help_command
+        self._current_view: Optional[discord.ui.View] = None
+
+    @property
+    def current_view(self):
+        return self._current_view
+
+    @current_view.setter
+    def current_view(self, value: discord.ui.View):
+        self._current_view = value
+
+    @abstractmethod
+    async def provide_bot_view(self, mapping: _MappingBotCommands, /) -> ViewAuthor:
+        ...
+
+    @abstractmethod
+    async def provide_cog_view(self, cog: commands.Cog, cog_commands: List[commands.Command], /) -> ViewAuthor:
+        ...
+
+    @abstractmethod
+    async def provide_command_view(self, command: commands.Command[Any, ..., Any], /) -> ViewAuthor:
+        ...
+
+    @abstractmethod
+    async def provide_group_view(self, group: commands.Group[Any, ..., Any], /) -> ViewAuthor:
+        ...
+
+    @abstractmethod
+    async def provide_error_view(self, error: str, /) -> ViewAuthor:
+        ...
+
+
+class HelpMenuProvider(BaseHelpProvider):
     """An implementation specifically for the MenuHelpCommand.
 
     Its sole purpose is to provide a proper View instance depending on the command called.
@@ -386,8 +424,6 @@ class HelpMenuProvider:
         The help command instance that was binded to the provider.
 
     """
-    def __init__(self, help_command: MenuHelpCommand):
-        self.help_command: MenuHelpCommand = help_command
 
     async def provide_bot_view(self, mapping: _MappingBotCommands) -> HelpMenuBot:
         """|coro|
@@ -505,3 +541,46 @@ class HelpMenuProvider:
             The view for the MenuHelpCommand
         """
         return HelpMenuError(self.help_command, error)
+
+
+class HelpPaginateBot(SimplePaginationView):
+    def __init__(self, help_command: PaginateHelpCommand, mapping: _MappingBotCommands, **options):
+        self.mapping: _MappingBotCommands = mapping
+        self.cog_pages: List[Optional[commands.Cog]] = [*mapping]
+        self.help_command: PaginateHelpCommand = help_command
+        self.current_cog_page: int = 0
+        super().__init__(self.get_cog_page(0), **options)
+
+    def get_cog_page(self, page: int) -> List[List[_Command]]:
+        cog = self.cog_pages[page]
+        cmds = self.mapping[cog]
+        chunks = discord.utils.as_chunks(cmds, self.help_command.per_page)
+        return chunks
+
+    async def switch_cog(self, interaction: discord.Interaction, page: int):
+        self.current_cog_page = page
+        cmds = self.get_cog_page(page)
+        self.name_cog.label = self.help_command.resolve_cog_name(self.cog_pages[page])
+        await self.change_source(cmds, interaction=interaction)
+
+    @discord.ui.button(label="Prev", style=discord.ButtonStyle.blurple)
+    async def previous_cog(self, interaction: discord.Interaction, button: discord.ui.Button):
+        page = max(self.current_cog_page - 1, 0)
+        await self.switch_cog(interaction, page)
+
+    @discord.ui.button(label="Name Placeholder", style=discord.ButtonStyle.red)
+    async def name_cog(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.change_page(interaction, 0)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    async def next_cog(self, interaction: discord.Interaction, button: discord.ui.Button):
+        page = min(self.current_cog_page + 1, len(self.cog_pages) - 1)
+        await self.switch_cog(interaction, page)
+
+    async def format_page(self, interaction: Optional[discord.Interaction], data: List[List[_Command]]
+                          ) -> Optional[Union[discord.Embed, Dict[str, Any], str]]:
+        return await self.help_command.format_bot_page(self, data)
+
+class HelpPaginateProvider(HelpMenuProvider):
+    async def provide_bot_view(self, mapping: _MappingBotCommands) -> HelpPaginateBot:
+        return HelpPaginateBot(self.help_command, mapping)

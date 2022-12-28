@@ -6,11 +6,13 @@ from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type
 import discord
 from discord.ext import commands
 
-from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton
+from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton, \
+    HelpPaginateProvider, HelpPaginateBot, HelpMenuBot
 from ..views.pagination import ViewAuthor
 
 __all__ = (
     "MenuHelpCommand",
+    "PaginateHelpCommand",
 )
 
 T = TypeVar('T')
@@ -434,5 +436,20 @@ class MenuHelpCommand(commands.HelpCommand):
         return discord.Embed(
             title=title,
             description=f"{desc}{list_cmds}",
+            color=self.accent_color
+        )
+
+
+class PaginateHelpCommand(MenuHelpCommand):
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.view_provider = HelpPaginateProvider(self)
+
+    async def format_bot_page(self, view: HelpPaginateBot, cmds: List[_Command]) -> _OptionalFormatReturns:
+        current_page = view.current_page
+        first_cmd = cmds[0]
+        return discord.Embed(
+            title=f"Help Command ({self.resolve_cog_name(first_cmd.cog)}) [{current_page + 1}/{view.max_pages}]",
+            description="\n".join([self.format_command_brief(c) for c in cmds]),
             color=self.accent_color
         )
