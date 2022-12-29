@@ -152,7 +152,7 @@ class FuzzyFilter(SearchFilter[str]):
         return self.get_ratio(self.query, str(value))
 
 
-def _plain_predicate(query: Any) -> Callable[[Any], bool]:
+def _eq_predicate(query: Any) -> Callable[[Any], bool]:
 
     def _predicate(value: Any) -> bool:
         return value == query
@@ -180,14 +180,14 @@ def _search(
     # sepcial case single attribute
     if len(attrs) == 1:
         k, v = attrs.popitem()
-        predicate = v.filter if isinstance(v, SearchFilter) else _plain_predicate(v)
+        predicate = v.filter if isinstance(v, SearchFilter) else _eq_predicate(v)
         unsorted_items_gen = ((item, _get_score(item, k, predicate)) for item in iterable)
         unsorted_items = [t for t in unsorted_items_gen if t[1]]
         if _sort:
             unsorted_items.sort(key=lambda t: t[1], reverse=True)
         items = [t[0] for t in unsorted_items]
     else:
-        predicates = {k: v.filter if isinstance(v, SearchFilter) else _str_predicate(v) for k, v in attrs.items()}
+        predicates = {k: v.filter if isinstance(v, SearchFilter) else _eq_predicate(v) for k, v in attrs.items()}
         unsorted_items = []
 
         if _sort:
@@ -241,14 +241,14 @@ async def _asearch(
     # sepcial case single attribute
     if len(attrs) == 1:
         k, v = attrs.popitem()
-        predicate = v.filter if isinstance(v, SearchFilter) else _str_predicate(v)
+        predicate = v.filter if isinstance(v, SearchFilter) else _eq_predicate(v)
         unsorted_items_gen = ((item, _get_score(item, k, predicate)) async for item in iterable)
         unsorted_items = [t async for t in unsorted_items_gen if t[1]]
         if _sort:
             unsorted_items.sort(key=lambda t: t[1], reverse=True)
         items = [t[0] for t in unsorted_items]
     else:
-        predicates = {k: v.filter if isinstance(v, SearchFilter) else _str_predicate(v) for k, v in attrs.items()}
+        predicates = {k: v.filter if isinstance(v, SearchFilter) else _eq_predicate(v) for k, v in attrs.items()}
         unsorted_items = []
 
         if _sort:
