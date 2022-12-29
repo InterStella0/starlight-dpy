@@ -2,7 +2,7 @@ from .help_command.command import *
 from .errors.view import *
 from .views.pagination import *
 from .views.utils import *
-from .utils import *
+from .utils.search import *
 
 from typing import NamedTuple, Literal
 

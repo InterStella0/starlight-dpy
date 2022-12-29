@@ -6,7 +6,11 @@ from operator import attrgetter
 from typing import (
     overload,
     TYPE_CHECKING,
+    TypeVar,
+    Generic,
 )
+
+T = TypeVar('T')
 
 if TYPE_CHECKING:
     from typing import (
@@ -19,11 +23,8 @@ if TYPE_CHECKING:
         Coroutine,
         Iterable,
         Union,
-        TypeVar,
     )
 
-    T = TypeVar('T')
-    T_co = TypeVar('T_co', covariant=True)
     Coro = Coroutine[Any, Any, T]
     _Iter = Union[Iterable[T], AsyncIterable[T]]
 
@@ -34,21 +35,24 @@ __all__ = (
     'search',
 )
 
-class SearchFilter:
+
+class SearchFilter(Generic[T]):
     """Base class for filtering with :func:`search`.
 
     Parameters
     ------------
-    query: :class: `Any`
+    query: Any
         The query value to filter by.
     """
-    def __init__(self, query: Any):
-        self.query = query
+    def __init__(self, query: T):
+        self.query: T = query
 
     def filter(self, value: Any, /) -> Any:
         """Filters the value from the iterable. The return value will be included
         if it is truthy or excluded if it is falsy. The return value is used to sort
         the item.
+
+        Subclasses should override this method.
 
         Parameters
         ------------
@@ -61,18 +65,18 @@ class SearchFilter:
             The value to sort this item by.
 
         """
-        return value == self.query
+        raise NotImplementedError
 
 
-class ContainsFilter(SearchFilter):
+class ContainsFilter(SearchFilter[Any]):
     """Basic filter that checks if ``query`` is in the attribute value.
 
     Parameters
     ------------
-    query: :class: `Any`
+    query: Any
         The query value to filter by.
     """
-    def filter(self, value: Any, /) -> Any:
+    def filter(self, value: Any, /) -> bool:
         """Filters the value from the iterable. The return value will be included
         if it is truthy or excluded if it is falsy. The return value is used to sort
         the item.
@@ -90,31 +94,68 @@ class ContainsFilter(SearchFilter):
         return self.query in value
 
 
-class FuzzyFilter(SearchFilter):
-    """Basic fuzzy filter that filters based on the distance between two strings.
+class FuzzyFilter(SearchFilter[str]):
+    """Basic fuzzy filter using difflib that filters based on the distance
+    between two strings.
 
     Parameters
     ------------
-    query: :class: `Any`
+    query: :class: `str`
         The query value to filter by.
     cutoff_ratio: :class:`float`
         The minimum ratio the input must be to be included. Default is ``0.6``.
+    quick: :class:`bool`
+        Whether to use ``quick_ratio`` or slower ``ratio`` for getting the fuzzy ratio.
+        Defaults to ``True`` to use ``quick_ratio``.
     """
-    def __init__(self, query: Any, /, *, cutoff_ratio: float = 0.6):
+    def __init__(self, query: str, /, *, cutoff_ratio: float = 0.6, quick: bool = True):
         super().__init__(query)
         self.cutoff_ratio = cutoff_ratio
+        self.quick = quick
 
-    def filter(self, value: Any, /) -> Any:
-        matcher = difflib.SequenceMatcher(a=self.query, b=value)
-        ratio = matcher.quick_ratio()
+    def get_ratio(self, query: str, value: str) -> float:
+        """Uses difflib to get the ratio between ``query`` and ``value``.
+
+        Parameters
+        ------------
+        query: :class:`str`
+            The value to use as ``a`` for difflib ratio/quick_ratio.
+        value: :class:`str`
+            The value to use as ``b`` for difflib ratio/quick_ratio.
+
+        Returns
+        --------
+        :class:`float`
+            The ratio between the two input strings.
+        """
+        matcher = difflib.SequenceMatcher(a=query, b=value)
+        ratio = (matcher.quick_ratio if self.quick else matcher.ratio)()
         contains = self.query in value
-        return (contains, ratio) if ratio >= self.cutoff_ratio or contains else 0.0
+        return (ratio + 0.5 * contains) if ratio >= self.cutoff_ratio or contains else 0.0
+
+    def filter(self, value: Any, /) -> float:
+        """Filters the value from the iterable. The return value will be included
+        if it is truthy or excluded if it is falsy. The return value is used to sort
+        the item.
+
+        Parameters
+        ------------
+        value: Any
+            The value of the attribute from the item in iterable. It is cast to
+            :class:`str` before
+
+        Returns
+        --------
+        :class:`float`
+            The value to sort this item by.
+        """
+        return self.get_ratio(self.query, str(value))
 
 
-def _str_predicate(query: str) -> Callable[[str], Any]:
+def _str_predicate(query: str) -> Callable[[Any], bool]:
 
-    def _predicate(value: str) -> Any:
-        return value == query
+    def _predicate(value: Any) -> bool:
+        return str(value) == query
 
     return _predicate
 
@@ -129,7 +170,7 @@ def _search(
     *,
     _check_any: bool,
     _sort: bool,
-    attrs: Dict[str, Union[str, SearchFilter]],
+    attrs: Dict[str, Any],
 ) -> List[T]:
     # global -> local
     _check = any if _check_any else all
@@ -195,7 +236,7 @@ async def _asearch(
     # global -> local
     _check = any if _check_any else all
 
-    unsorted_items: List[Tuple[T, Union[List[float], float]]]
+    unsorted_items: List[Tuple[T, Any]]
 
     # sepcial case single attribute
     if len(attrs) == 1:
@@ -274,6 +315,8 @@ def search(
         Default is ``False``.
     sort: class:`bool`
         Whether to sort the output based on the scoring values. Default is ``False``.
+        The order of attributes determines their weighting for sorting with the first
+        having the most weight and last the least weight.
     \*\*attrs
         Keyword arguments that denote attributes to search with.
 
