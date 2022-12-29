@@ -32,6 +32,8 @@ __all__ = (
     'SearchFilter',
     'ContainsFilter',
     'FuzzyFilter',
+    'Contains',
+    'Fuzzy',
     'search',
 )
 
@@ -93,6 +95,8 @@ class ContainsFilter(SearchFilter[Any]):
         """
         return self.query in value
 
+Contains = ContainsFilter
+
 
 class FuzzyFilter(SearchFilter[str]):
     """Basic fuzzy filter using difflib that filters based on the distance
@@ -150,6 +154,8 @@ class FuzzyFilter(SearchFilter[str]):
             The value to sort this item by.
         """
         return self.get_ratio(self.query, str(value))
+
+Fuzzy = FuzzyFilter
 
 
 def _eq_predicate(query: Any) -> Callable[[Any], bool]:
@@ -296,12 +302,24 @@ def search(iterable: Iterable[T], /, *, check_any: bool = False, sort: bool = Fa
 def search(
     iterable: _Iter[T], /, *, check_any: bool = False, sort: bool = False, **attrs: Any
 ) -> Union[List[T], Coro[List[T]]]:
-    r"""A helper that returns elements in the iterable that meet
-    all the traits passed in ``attrs``.
+    r"""A helper that returns all elements in the iterable that meet all or any
+    of the traits passed in ``attrs`` depending on ``check_any``.
     To have a nested attribute search (i.e. search by ``x.y``) then
     pass in ``x__y`` as the keyword argument.
     If nothing is found that matches the attributes passed, then
     an empty list is returned.
+
+    Examples
+    ---------
+    Using :class:`SearchFilter`:
+    .. code-block:: python3
+        cmds_by_name_and_desc = await starlight.search(bot.commands, name=FuzzyFilter('user'), description=ContainsFilter('user'))
+    Sorting output based on fuzzy ratio:
+    .. code-block:: python3
+        sorted_cmds_by_fuzzy_name = await starlight.search(bot.commands, sort=True, name=FuzzyFilter('user'))
+    Turn attribute matching to logical OR:
+    .. code-block:: python3
+        cmds_by_name_or_desc = await starlight.search(bot.commands, check_any=True, name=FuzzyFilter('user'), description=ContainsFilter('user'))
 
     Parameters
     -----------
@@ -319,7 +337,6 @@ def search(
         having the most weight and last the least weight.
     \*\*attrs
         Keyword arguments that denote attributes to search with.
-
 
     Returns
     --------
