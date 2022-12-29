@@ -2,9 +2,9 @@
 A utility library that she uses for discord.py
 
 This 'library' is still in pre-alpha. This is still
-actively being develop and major changes _may_ be made.
+actively being develop and major changes _may_ be made :3
 
-Feel free to open an issue if you found any bugs!
+Feel free to open an issue if you found any bugs!🌷
 
 **Do not use this in production.**
 
@@ -42,10 +42,12 @@ You can easily customize your help command by overriding `format_*` methods!
 Format methods: 
 - `format_command_brief(cmd: commands.Command)`
 - `format_cog_page(view: HelpMenuCog, data: List[commands.Command])`
+- `format_bot_page(view: HelpMenuBot, mapping: Dict[Optional[commands.Cog], List[commands.Command]])`
 - `format_group_detail(view: HelpMenuGroup)`
 - `format_command_detail(view: HelpMenuCommand)`
 - `format_error_detail(view: HelpMenuError)`
-- `format_front_bot_menu(mapping: Dict[Optional[commands.Cog], List[commands.Command]])`
+
+**Note: `page` suffix meant the View inherits SimplePaginationView** 
 
 **Example:**
 ```python
@@ -55,7 +57,7 @@ import discord
 from discord.ext import commands
 
 class MyMenuHelpCommand(starlight.MenuHelpCommand):
-    async def format_front_bot_menu(self, mapping):
+    async def format_bot_page(self, view, mapping):
         return discord.Embed(
             title="Help",
             description="Choose a category to display your help command!",

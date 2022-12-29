@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import itertools
 from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type
 
 import discord
 from discord.ext import commands
 
-from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton
+from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton, \
+    HelpPaginateProvider, HelpPaginateBot, HelpMenuBot
 from ..views.pagination import ViewAuthor
 
 __all__ = (
     "MenuHelpCommand",
+    "PaginateHelpCommand",
 )
 
 T = TypeVar('T')
@@ -39,6 +42,8 @@ class MenuHelpCommand(commands.HelpCommand):
         Color of embed for error display. Defaults to `discord.Color.red`.
     pagination_buttons: Optional[Mapping[ :class: `str`, discord.ui.Button]]
         Mapping of pagination discord.ui.Button instances for each pagination iteraction.
+    inline_fields: :class: `bool`
+        Boolean that indicate if embed field on cog should be inline. Defaults to True.
     cls_home_button: Type[MenuHomeButton]
         discord.ui.Button class for the home button.
     view_provider: HelpMenuProvider
@@ -56,11 +61,13 @@ class MenuHelpCommand(commands.HelpCommand):
                  accent_color: Union[discord.Color, int] = discord.Color.blurple(),
                  error_color: Union[discord.Color, int] = discord.Color.red(),
                  pagination_buttons: Optional[Mapping[str, discord.ui.Button]] = None,
+                 inline_fields: bool = True,
                  cls_home_button: Type[MenuHomeButton] = MenuHomeButton,
                  **options):
         super().__init__(**options)
         self.no_category: str = no_category
         self.per_page: int = per_page
+        self.inline_fields = inline_fields
         self.accent_color: Union[discord.Color, int] = accent_color
         self.error_color: Union[discord.Color, int] = error_color
         self.no_documentation: str = no_documentation
@@ -111,7 +118,7 @@ class MenuHelpCommand(commands.HelpCommand):
         :class:`str`
             The signature for the command.
         """
-        return f"{self.get_command_signature(command)}\n{command.short_doc or self.no_documentation}"
+        return f"`{self.get_command_signature(command)}`\n{command.short_doc or self.no_documentation}"
 
     async def format_group_detail(self, view: HelpMenuGroup) -> _OptionalFormatReturns:
         """Interface to display a detail description of a Group command.
@@ -194,12 +201,14 @@ class MenuHelpCommand(commands.HelpCommand):
             return {"embed": formed_interface}
         return {"content": formed_interface}
 
-    async def form_front_bot_menu_kwargs(self, mapping: _MappingBotCommands) -> Dict[str, Any]:
+    async def form_bot_kwargs(self, view: HelpMenuBot, mapping: _MappingBotCommands) -> Dict[str, Any]:
         """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
         Mostly used to resolve key arguments from `MenuHelpCommand.form_front_bot_menu`.
 
         Parameters
         ------------
+        view: HelpMenuBot
+            The view paginator that is used.
         mapping: Dict[Optional[commands.Cog], List[Command]]
             The dictionary that is mapped on Cog and the list Command associated with it.
         Returns
@@ -207,7 +216,7 @@ class MenuHelpCommand(commands.HelpCommand):
         :class: Dict[str, Any]
             The keyword arguments to be given onto the `Message.edit`.
         """
-        return await self.__normalized_kwargs(self.format_front_bot_menu, mapping)
+        return await self.__normalized_kwargs(self.format_bot_page, view, mapping)
 
     async def form_command_detail_kwargs(self, view: HelpMenuCommand) -> Dict[str, Any]:
         """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
@@ -363,7 +372,7 @@ class MenuHelpCommand(commands.HelpCommand):
         view = await self.view_provider.provide_error_view(error)
         await self.initiate_view(view)
 
-    async def format_front_bot_menu(self, mapping: _MappingBotCommands) -> _OptionalFormatReturns:
+    async def format_bot_page(self, view: HelpMenuBot, mapping: _MappingBotCommands) -> _OptionalFormatReturns:
         """Interface to display a general description of all bot commands.
 
         When the total cog exceed `MenuHelpCommand.per_page`, they are automatically paginated.
@@ -371,16 +380,22 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
+        view: HelpMenuBot
+            The view paginator that is used.
         mapping: Dict[Optional[Cog], List[Command]]
-            The mapping that will be displayed
+            The mapping that will be displayed.
         Returns
         --------
         :class: Union[discord.Embed, Dict[`str`, Any], `str`]
             The value to be display on the Message.
         """
+        title="Help Command"
+        if view.max_pages > 1:
+            title += f" ({view.current_page + 1}/{view.max_pages})"
+
         embed = discord.Embed(
-            title="Help Command",
-            description=self.context.bot.description or None,
+            title=title,
+            description=self.context.bot.description if view.current_page == 0 else None,
             color=self.accent_color
         )
         data = [(cog, cmds) for cog, cmds in mapping.items()]
@@ -388,8 +403,8 @@ class MenuHelpCommand(commands.HelpCommand):
         for cog, cmds in data:
             name_resolved = self.resolve_cog_name(cog)
             value = getattr(cog, "description", None) or self.no_documentation
-            name = f"{name_resolved} ({len(cmds)})"
-            embed.add_field(name=name, value=value)
+            name = f"{name_resolved} (`{len(cmds)}`)"
+            embed.add_field(name=name, value=value, inline=self.inline_fields)
 
         return embed
 
@@ -409,8 +424,32 @@ class MenuHelpCommand(commands.HelpCommand):
         :class: Union[discord.Embed, Dict[`str`, Any], `str`]
             The value to be display on the Message.
         """
+
+        title = f"{self.resolve_cog_name(view.cog)} ({view.current_page + 1}/{view.max_pages})"
+        desc = ""
+        if view.current_page == 0:
+            desc = getattr(view.cog, "description", None) or self.no_documentation
+            all_cmds = [*itertools.chain.from_iterable(view.data_source)]
+            desc += f"\n\n**Commands[`{len(all_cmds)}`]**\n"
+
+        list_cmds = "\n".join([self.format_command_brief(cmd) for cmd in cmds])
         return discord.Embed(
-            title=self.resolve_cog_name(view.cog),
-            description="\n".join([self.format_command_brief(cmd) for cmd in cmds]),
+            title=title,
+            description=f"{desc}{list_cmds}",
+            color=self.accent_color
+        )
+
+
+class PaginateHelpCommand(MenuHelpCommand):
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.view_provider = HelpPaginateProvider(self)
+
+    async def format_bot_page(self, view: HelpPaginateBot, cmds: List[_Command]) -> _OptionalFormatReturns:
+        current_page = view.current_page
+        first_cmd = cmds[0]
+        return discord.Embed(
+            title=f"Help Command ({self.resolve_cog_name(first_cmd.cog)}) [{current_page + 1}/{view.max_pages}]",
+            description="\n".join([self.format_command_brief(c) for c in cmds]),
             color=self.accent_color
         )
