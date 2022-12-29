@@ -152,10 +152,10 @@ class FuzzyFilter(SearchFilter[str]):
         return self.get_ratio(self.query, str(value))
 
 
-def _str_predicate(query: str) -> Callable[[Any], bool]:
+def _plain_predicate(query: Any) -> Callable[[Any], bool]:
 
     def _predicate(value: Any) -> bool:
-        return str(value) == query
+        return value == query
 
     return _predicate
 
@@ -180,7 +180,7 @@ def _search(
     # sepcial case single attribute
     if len(attrs) == 1:
         k, v = attrs.popitem()
-        predicate = v.filter if isinstance(v, SearchFilter) else _str_predicate(v)
+        predicate = v.filter if isinstance(v, SearchFilter) else _plain_predicate(v)
         unsorted_items_gen = ((item, _get_score(item, k, predicate)) for item in iterable)
         unsorted_items = [t for t in unsorted_items_gen if t[1]]
         if _sort:
