@@ -24,7 +24,8 @@ sys.path.append(os.path.abspath('extensions'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'sphinx_rtd_dark_mode',
 ]
 
 autodoc_typehints = 'none'
@@ -48,10 +49,16 @@ rst_prolog = """
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
+
+# static
 html_static_path = ['_static']
+html_css_files = [
+    'css/general.css',
+]
+
 html_theme_options = {
     'display_version': True,
-    'style_nav_header_background': '#ffcccb',
+    'style_nav_header_background': '#ff83c0',
     'collapse_navigation': True,
     'sticky_navigation': True,
     'navigation_depth': 4,

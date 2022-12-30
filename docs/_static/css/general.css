@@ -1,0 +1,26 @@
+@import 'theme.css';
+:root{
+    --dark-link-color: #ff83c0 !important;
+}
+
+.pre{
+    color: white !important;
+}
+.headerlink{
+    color: #ff83c0 !important;
+}
+.sig-object{
+    background-color: #290818 !important;
+    color: #C955F3 !important;
+}
+
+.property > span{
+    color: #C955F3 !important;
+}
+.sig-paren{
+    color: #C955F3 !important;
+}
+
+.sig-param{
+    color: #C955F3 !important;
+}
