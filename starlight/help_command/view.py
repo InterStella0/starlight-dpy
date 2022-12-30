@@ -13,6 +13,10 @@ from ..views.pagination import SimplePaginationView, ViewAuthor
 if TYPE_CHECKING:
     from .command import MenuHelpCommand, PaginateHelpCommand
 
+    _Command = commands.Command[Any, ..., Any]
+    _MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
+    _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
+
 __all__ = (
     "MenuDropDown",
     "MenuHomeButton",
@@ -26,9 +30,7 @@ __all__ = (
     "HelpPaginateBot",
     "BaseHelpProvider",
 )
-_Command = commands.Command[Any, ..., Any]
-_MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
-_OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
+
 
 class MenuDropDown(discord.ui.Select):
     """Represents a Select for the MenuHelpCommand.

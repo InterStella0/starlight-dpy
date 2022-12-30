@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type
+from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -16,9 +16,10 @@ __all__ = (
 )
 
 T = TypeVar('T')
-_Command = commands.Command[Any, ..., Any]
-_MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
-_OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
+if TYPE_CHECKING:
+    _Command = commands.Command[Any, ..., Any]
+    _MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
+    _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 
 class MenuHelpCommand(commands.HelpCommand):
