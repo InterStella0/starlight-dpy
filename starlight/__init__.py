@@ -9,7 +9,7 @@ __title__ = 'starlight-dpy'
 __author__ = 'InterStella0'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-present InterStella0'
-__version__ = '0.0.1ar'
+__version__ = '0.0.1a19'
 
 
 class VersionInfo(NamedTuple):
@@ -17,7 +17,7 @@ class VersionInfo(NamedTuple):
     minor: int
     micro: int
     level: Literal["a", "b", "o", "f"]
-    serial: str
+    serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=0, micro=1, level='a', serial='r')
+version_info: VersionInfo = VersionInfo(major=0, minor=0, micro=1, level='a', serial=19)
