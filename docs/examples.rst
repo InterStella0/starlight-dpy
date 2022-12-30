@@ -12,6 +12,7 @@ MenuHelpCommand
 ----------------
 Utilizes components to display commands. Uses Select as the general
 help command navigation.
+
 .. code-block:: python
 
     import starlight
