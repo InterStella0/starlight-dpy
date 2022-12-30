@@ -202,3 +202,5 @@ async def my_command(ctx):
 
 The output of this code is the equivalent of the Pagination View example.
 
+# Links
+- [Documentation](https://starlight-dpy.readthedocs.io/en/latest/)
