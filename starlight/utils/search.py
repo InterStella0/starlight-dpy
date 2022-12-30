@@ -73,6 +73,12 @@ class SearchFilter(Generic[T]):
 class ContainsFilter(SearchFilter[Any]):
     """Basic filter that checks if ``query`` is in the attribute value.
 
+    .. code-block:: python3
+        starlight.search(items, my_attr=ContainsFilter('my_value'))
+    Equivalent of
+    .. code-block:: python3
+        [item for item in items if 'my_value' in item.my_attr]
+
     Parameters
     ------------
     query: Any
@@ -101,6 +107,14 @@ Contains = ContainsFilter
 class FuzzyFilter(SearchFilter[str]):
     """Basic fuzzy filter using difflib that filters based on the distance
     between two strings.
+
+    .. code-block:: python3
+        starlight.search(items, my_attr=FuzzyFilter('value', cutoff_ratio=0.5))
+
+    Equivalent to
+
+    .. code-block:: python3
+        [item for item in items if 'value' in str(item.my_attr) or quick_ratio('value', str(item.my_attr)) >= 0.5]
 
     Parameters
     ------------
@@ -317,7 +331,7 @@ def search(
     Sorting output based on fuzzy ratio:
     .. code-block:: python3
         sorted_cmds_by_fuzzy_name = await starlight.search(bot.commands, sort=True, name=FuzzyFilter('user'))
-    Turn attribute matching to logical OR:
+    Use logical OR for attribute matching:
     .. code-block:: python3
         cmds_by_name_or_desc = await starlight.search(bot.commands, check_any=True, name=FuzzyFilter('user'), description=ContainsFilter('user'))
 
