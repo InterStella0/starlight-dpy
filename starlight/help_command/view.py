@@ -20,7 +20,11 @@ __all__ = (
     "HelpMenuBot",
     "HelpMenuCommand",
     "HelpMenuGroup",
-    "HelpMenuError"
+    "HelpMenuError",
+    "HelpMenuProvider",
+    "HelpPaginateProvider",
+    "HelpPaginateBot",
+    "BaseHelpProvider",
 )
 _Command = commands.Command[Any, ..., Any]
 _MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
@@ -33,12 +37,12 @@ class MenuDropDown(discord.ui.Select):
 
     Parameters
     -----------
-    no_category: :class: `str`
+    no_category: :class:`str`
         The text that will be displayed when there is no name for a category. Defaults to 'No Category'.
-    no_documentation: :class: `str`
+    no_documentation: :class:`str`
         The text that will be displayed when there is no documentation for a category.
         Defaults to 'No Documentation'.
-    placeholder: :class: `str`
+    placeholder: :class:`str`
         The text that will be displayed on the Select placeholder.
         Defaults to 'Select a category'.
     """
@@ -59,7 +63,7 @@ class MenuDropDown(discord.ui.Select):
         await self.view.toggle_interface(interaction)
 
     def create_category_option(self, cog: Optional[commands.Cog]) -> discord.SelectOption:
-        """A method that creates SelectOption for a particular cog.
+        """A method that creates :class:`discord.SelectOption` for a particular cog.
 
         Parameters
         -----------
@@ -68,7 +72,7 @@ class MenuDropDown(discord.ui.Select):
 
         Returns
         --------
-        SelectOption
+        :class:`discord.SelectOption`
             The SelectOption that will be appended to the MenuDropDown.
         """
         docs = getattr(cog, "description", None) or self.no_documentation
@@ -98,7 +102,7 @@ class MenuHomeButton(discord.ui.Button):
         The view that is associated with the button for toggling.
     style: discord.ButtonStyle
         Style of the button. Defaults to `discord.ButtonStyle.green`.
-    row: :class: `int`
+    row: :class:`int`
         The row position of the button. Defaults to 2.
     """
 
@@ -169,9 +173,9 @@ class HelpMenuBot(SimplePaginationView):
         The help command that is associated with this view.
     mapping: Dict[Optional[Cog], List[Command]]
         The full mapping of commands and Cog that will be display.
-    no_category: :class: `str`
+    no_category: :class:`str`
         The text that will be displayed when a cog is None. Defaults to 'No Category'.
-    cog_per_page: Optional[:class: `int`]
+    cog_per_page: Optional[:class:`int`]
         The amount of cogs that are displayed in a given page. Defaults to `MenuHelpCommand.per_page`.
     cls_home_button: Type[MenuHomeButton]
         The class that will be instantiate for the home button. This is to toggle the view between the list of cogs
@@ -249,7 +253,8 @@ class HelpMenuBot(SimplePaginationView):
         else:
             self.current_dropdown.set_cogs(data)
 
-    async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]) -> _OptionalFormatReturns:
+    async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]
+                          ) -> _OptionalFormatReturns:
         mapping = {}
         for cog in data:
             mapping[cog] = self.__mapping[cog]
@@ -359,9 +364,9 @@ class HelpMenuError(ViewAuthor):
 
         Parameters
         -----------
-        interaction: discord.Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that called the button.
-        button: discord.ui.Button
+        button: :class:`discord.ui.Button`
             The button that was clicked.
 
         """
@@ -426,7 +431,7 @@ class HelpMenuProvider(BaseHelpProvider):
     """
 
     async def provide_bot_view(self, mapping: _MappingBotCommands) -> HelpMenuBot:
-        """|coro|
+        """
 
         This method is invoke when the MenuHelpCommand.send_bot_help is called.
         It provide a HelpMenuBot instance to be displayed on the help_command.
@@ -436,9 +441,9 @@ class HelpMenuProvider(BaseHelpProvider):
 
         Parameters
         ------------
-        mapping: Dict[Optional[:class:`Cog`], List[:class:`Command`]]
+        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
             A filtered mapping of cogs to commands that have been requested by the user for help.
-            The key of the mapping is the :class:`~.commands.Cog` that the command belongs to, or
+            The key of the mapping is the :class:`commands.Cog` that the command belongs to, or
             ``None`` if there isn't one, and the value is a list of commands that belongs to that cog.
 
         Returns
@@ -452,7 +457,7 @@ class HelpMenuProvider(BaseHelpProvider):
         )
 
     async def provide_cog_view(self, cog: commands.Cog, cog_commands: List[commands.Command]) -> HelpMenuCog:
-        """|coro|
+        """
 
         This method is invoke when the MenuHelpCommand.send_cog_help is called.
         It provide a HelpMenuCog instance to be displayed on the help_command.
@@ -477,7 +482,7 @@ class HelpMenuProvider(BaseHelpProvider):
         return HelpMenuCog(cog, help_command, chunks)
 
     async def provide_command_view(self, command: commands.Command[Any, ..., Any], /) -> HelpMenuCommand:
-        """|coro|
+        """
 
         This method is invoke when the MenuHelpCommand.send_command_help is called.
         It provide a HelpMenuCommand instance to be displayed on the help_command.
@@ -499,7 +504,7 @@ class HelpMenuProvider(BaseHelpProvider):
         return HelpMenuCommand(self.help_command, command)
 
     async def provide_group_view(self, group: commands.Group[Any, ..., Any], /) -> HelpMenuGroup:
-        """|coro|
+        """
 
         This method is invoke when the MenuHelpCommand.send_group_help is called.
         It provide a HelpMenuCommand instance to be displayed on the help_command.
@@ -521,7 +526,7 @@ class HelpMenuProvider(BaseHelpProvider):
         return HelpMenuGroup(self.help_command, group)
 
     async def provide_error_view(self, error: str, /) -> HelpMenuError:
-        """|coro|
+        """
 
         This method is invoke when the MenuHelpCommand.send_error_help is called.
         It provide a HelpMenuError instance to be displayed on the help_command.
@@ -544,12 +549,27 @@ class HelpMenuProvider(BaseHelpProvider):
 
 
 class HelpPaginateBot(SimplePaginationView):
-    def __init__(self, help_command: PaginateHelpCommand, mapping: _MappingBotCommands, **options):
+    """Represents a cog-commands pagination for the PaginateHelpCommand that occurs when a general help command was
+    requested.
+
+    This class should be inherited when changing the :class:`PaginateHelpCommand` `send_bot_help` view and override
+    `HelpPaginateProvider.provide_bot_view`.
+
+    Parameters
+    -----------
+    help_command: :class:`PaginateHelpCommand`
+        The help command that is associated with this view.
+    mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        The mapping that was given by the help command.
+    """
+
+    def __init__(self, help_command: PaginateHelpCommand, mapping: _MappingBotCommands, **options) -> None:
         self.mapping: _MappingBotCommands = mapping
         self.cog_pages: List[Optional[commands.Cog]] = [*mapping]
         self.help_command: PaginateHelpCommand = help_command
         self.current_cog_page: int = 0
         super().__init__(self.get_cog_page(0), **options)
+        self.set_label(self.cog_pages[0])
 
     def get_cog_page(self, page: int) -> List[List[_Command]]:
         cog = self.cog_pages[page]
@@ -557,13 +577,16 @@ class HelpPaginateBot(SimplePaginationView):
         chunks = discord.utils.as_chunks(cmds, self.help_command.per_page)
         return chunks
 
-    async def switch_cog(self, interaction: discord.Interaction, page: int):
+    def set_label(self, cog: Optional[commands.Cog]) -> None:
+        self.name_cog.label = self.help_command.resolve_cog_name(cog)
+
+    async def switch_cog(self, interaction: discord.Interaction, page: int) -> None:
         self.current_cog_page = page
         cmds = self.get_cog_page(page)
-        self.name_cog.label = self.help_command.resolve_cog_name(self.cog_pages[page])
+        self.set_label(self.cog_pages[page])
         await self.change_source(cmds, interaction=interaction)
 
-    @discord.ui.button(label="Prev", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="<", style=discord.ButtonStyle.blurple)
     async def previous_cog(self, interaction: discord.Interaction, button: discord.ui.Button):
         page = max(self.current_cog_page - 1, 0)
         await self.switch_cog(interaction, page)
@@ -572,15 +595,41 @@ class HelpPaginateBot(SimplePaginationView):
     async def name_cog(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.change_page(interaction, 0)
 
-    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label=">", style=discord.ButtonStyle.blurple)
     async def next_cog(self, interaction: discord.Interaction, button: discord.ui.Button):
         page = min(self.current_cog_page + 1, len(self.cog_pages) - 1)
         await self.switch_cog(interaction, page)
 
     async def format_page(self, interaction: Optional[discord.Interaction], data: List[List[_Command]]
                           ) -> Optional[Union[discord.Embed, Dict[str, Any], str]]:
+        """Implementation for format_page that calls :meth:`PaginateHelpCommand.format_bot_page`.
+        This should be not overwritten by the user.
+
+        Returns
+        --------
+        Optional[Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]]
+            The kwargs that will be given to the paginator.
+        """
         return await self.help_command.format_bot_page(self, data)
 
 class HelpPaginateProvider(HelpMenuProvider):
+    """View provider for the :class:`PaginateHelpCommand`."""
     async def provide_bot_view(self, mapping: _MappingBotCommands) -> HelpPaginateBot:
+        """This method is invoke when the HelpPaginateBot.send_bot_help is called.
+
+        Overriding this method requires returning HelpMenuBot to supply a view for the :meth:`HelpPaginateBot.send_bot_help`
+        method.
+
+        Parameters
+        ------------
+        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+            A filtered mapping of cogs to commands that have been requested by the user for help.
+            The key of the mapping is the :class:`commands.Cog` that the command belongs to, or
+            ``None`` if there isn't one, and the value is a list of commands that belongs to that cog.
+
+        Returns
+        --------
+        :class:`HelpPaginateBot`
+            The view for the PaginateHelpCommand
+        """
         return HelpPaginateBot(self.help_command, mapping)

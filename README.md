@@ -47,7 +47,7 @@ Format methods:
 - `format_command_detail(view: HelpMenuCommand)`
 - `format_error_detail(view: HelpMenuError)`
 
-**Note: `page` suffix meant the View inherits SimplePaginationView** 
+**Note:`page` suffix meant the View inherits SimplePaginationView** 
 
 **Example:**
 ```python
@@ -148,19 +148,20 @@ async def my_command(ctx):
     view = MyPagination(my_data, cache_page=True)
     await view.start(ctx)
 ```
-**Note: You're required to chunk your data on your own. Tips: `discord.utils.as_chunks`**
+**Note: You're required to chunk your data on your own. Tips:`discord.utils.as_chunks`**
 
-*Supports `commands.Paginator` with `SimplePaginationView.from_paginator` classmethod.*
+*Supports `commands.Paginator` with `.from_paginator` classmethod.*
 
 **Output**
 
 ![output.png](docs/images/pagination_view.png)
 
 ## Inline Pagination
-Paginating can have distinct formats which could cause boilerplate code. Inline Pagination works
-similarly with Inline View. With a few changes, you're given a
-`InlinePaginationItem` for each sequence and required to respond to it by
-calling `format()` method.
+Paginating can have distinct formats which could cause boilerplate code. Which leads to the 
+creation of Inline Pagination. It works
+similarly with Inline View. With a slight change, 
+`InlinePaginationItem` are yielded for you to respond it to have an
+effect to the message through `.format()` method.
 
 ```python
 import starlight

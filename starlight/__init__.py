@@ -1,4 +1,5 @@
 from .help_command.command import *
+from .help_command.view import *
 from .errors.view import *
 from .views.pagination import *
 from .views.utils import *
