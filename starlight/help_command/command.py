@@ -22,35 +22,42 @@ _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 
 class MenuHelpCommand(commands.HelpCommand):
-    """HelpCommand implementation for MenuHelpCommand which
-       utilizes discord.ui.Select for Cog selection and discord.ui.Button for
-       command pagination. This subclass the HelpCommand.
+    """HelpCommand implementation for MenuHelpCommand which utilizes :class:`discord.ui.Select`
+    for :class:`commands.Cog` selection and :class:`discord.ui.Button` for command pagination.
 
     Attributes
     ------------
-    per_page: int
+    per_page: :class:`int`
         Amount of items per page that are displayed. This applies to Cog menu and command pagination. Defaults to 6.
+
     sort_commands: :class:`bool`
         Sort commands in ascending order based on the command name. Default to True.
+
     no_documentation: :class:`str`
         Text displayed when a command does not have a command description. Defaults to 'No Documentation'.
+
     no_category: :class:`str`
         Text display for commands that does not have a Cog associated with it. Defaults to 'No Category'
+
     accent_color: :class:`str`
-        Color of embed for normal display. Defaults to `discord.Color.blurple`.
-    error_color: Union[discord.Color, :class: `int`]
-        Color of embed for error display. Defaults to `discord.Color.red`.
-    pagination_buttons: Optional[Mapping[ :class: `str`, discord.ui.Button]]
+        Color of embed for normal display. Defaults to :class:`discord.Color.blurple`.
+
+    error_color: Union[:class:`discord.Colour`, :class:`int`]
+        Color of embed for error display. Defaults to :class:`discord.Color.red`.
+
+    pagination_buttons: Optional[Mapping[ :class:`str`, :class:`discord.ui.Button`]]
         Mapping of pagination discord.ui.Button instances for each pagination iteraction.
-    inline_fields: :class: `bool`
+
+    inline_fields: :class:`bool`
         Boolean that indicate if embed field on cog should be inline. Defaults to True.
-    cls_home_button: Type[MenuHomeButton]
-        discord.ui.Button class for the home button.
-    view_provider: HelpMenuProvider
-        An instance that provides View for each command use cases. Best way to give custom a discord.ui.View onto the
-        MenuHelpCommand.
-    original_message: Optional[Message]
-        A Message instance that was initially sent by the MenuHelpCommand.
+
+    cls_home_button: Type[:class:`MenuHomeButton`]
+        :class:`discord.ui.Button` class for the home button.
+    view_provider: :class:`HelpMenuProvider`
+        An instance that provides View for each command use cases. Best way to give custom a
+        :class:`discord.ui.View` onto the :class:`MenuHelpCommand`.
+    original_message: Optional[:class:`discord.Message`]
+        A Message instance that was initially sent by the :class:`MenuHelpCommand`.
     """
 
     def __init__(self, *,
@@ -79,6 +86,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
     @property
     def pagination_buttons(self) -> Mapping[str, Optional[discord.ui.Button]]:
+        """Your pagination button configuration that will be used for each pagination views within this help command."""
         row = 1
         return self._pagination_buttons or {
             "start_button": discord.ui.Button(emoji="⏪", row=row),
@@ -97,8 +105,9 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        command: :class:`Command`
+        command: :class:`commands.Command`
             The command to get the signature of.
+
         Returns
         --------
         :class:`str`
@@ -111,7 +120,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        command: :class:`Command`
+        command: :class:`commands.Command`
             The command to get the signature of.
         Returns
         --------
@@ -125,11 +134,12 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        view: HelpMenuGroup
+        view: :class:`HelpMenuGroup`
             The view that is associated with the Message.
+
         Returns
         --------
-        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+        Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
             The value to be display on the Message.
         """
         group = view.group
@@ -147,11 +157,11 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        view: HelpMenuCommand
+        view: :class:`HelpMenuCommand`
             The view that is associated with the Message.
         Returns
         --------
-        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+        Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
             The value to be display on the Message.
         """
         cmd = view.command
@@ -166,11 +176,11 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        view: HelpMenuError
+        view: :class:`HelpMenuError`
             The view that is associated with the error Message.
         Returns
         --------
-        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+        Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
             The value to be display on the Message.
         """
         return discord.Embed(
@@ -184,11 +194,11 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        cog: Optional[commands.Cog]
+        cog: Optional[:class:`commands.Cog`]
             The cog to resolve the name.
         Returns
         --------
-        :class: `str`
+        :class:`str`
             The name of the cog.
         """
         return getattr(cog, "qualified_name", None) or self.no_category
@@ -202,55 +212,55 @@ class MenuHelpCommand(commands.HelpCommand):
         return {"content": formed_interface}
 
     async def form_bot_kwargs(self, view: HelpMenuBot, mapping: _MappingBotCommands) -> Dict[str, Any]:
-        """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
+        """Retrieves a Dictionary that can be directly used onto :meth:`discord.Message.edit` key arguments.
         Mostly used to resolve key arguments from `MenuHelpCommand.form_front_bot_menu`.
 
         Parameters
         ------------
-        view: HelpMenuBot
+        view: :class:`HelpMenuBot`
             The view paginator that is used.
-        mapping: Dict[Optional[commands.Cog], List[Command]]
+        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
             The dictionary that is mapped on Cog and the list Command associated with it.
         Returns
         --------
-        :class: Dict[str, Any]
-            The keyword arguments to be given onto the `Message.edit`.
+        Dict[:class:`str`, Any]
+            The keyword arguments to be given onto the `:meth:`discord.Message.edit``.
         """
         return await self.__normalized_kwargs(self.format_bot_page, view, mapping)
 
     async def form_command_detail_kwargs(self, view: HelpMenuCommand) -> Dict[str, Any]:
-        """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
-        Mostly used to resolve key arguments from `MenuHelpCommand.format_command_detail`.
+        """Retrieves a Dictionary that can be directly used onto :meth:`discord.Message.edit` key arguments.
+        Mostly used to resolve key arguments from :meth:`MenuHelpCommand.format_command_detail`.
 
         Parameters
         ------------
-        view: HelpMenuCommand
-            The discord.ui.View associated with the command detail.
+        view: :class:`HelpMenuCommand`
+            The :class:`discord.ui.View` associated with the command detail.
         Returns
         --------
-        :class: Dict[str, Any]
-            The keyword arguments to be given onto the `Message.edit`.
+        Dict[:class:`str`, Any]
+            The keyword arguments to be given onto the :meth:`discord.Message.edit`.
         """
         return await self.__normalized_kwargs(self.format_command_detail, view)
 
     async def form_group_detail_kwargs(self, view: HelpMenuGroup) -> Dict[str, Any]:
-        """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
-        Mostly used to resolve key arguments from `MenuHelpCommand.format_group_detail`.
+        """Retrieves a Dictionary that can be directly used onto :meth:`discord.Message.edit` key arguments.
+        Mostly used to resolve key arguments from :meth:`MenuHelpCommand.format_group_detail`.
 
         Parameters
         ------------
-        view: HelpMenuGroup
-            The discord.ui.View associated with the group detail.
+        view: :class:`HelpMenuGroup`
+            The :class:`discord.ui.View` associated with the group detail.
         Returns
         --------
-        :class: Dict[str, Any]
-            The keyword arguments to be given onto the `Message.edit`.
+        Dict[:class:`str`, Any]
+            The keyword arguments to be given onto the :class::meth:`discord.Message.edit`.
         """
         return await self.__normalized_kwargs(self.format_group_detail, view)
 
     async def form_error_detail_kwargs(self, view: HelpMenuError) -> Dict[str, Any]:
-        """Retrieves a Dictionary that can be directly used onto Message.edit key arguments.
-        Mostly used to resolve key arguments from `MenuHelpCommand.format_error_detail`.
+        """Retrieves a Dictionary that can be directly used onto :meth:`discord.Message.edit` key arguments.
+        Mostly used to resolve key arguments from :meth:`MenuHelpCommand.format_error_detail`.
 
         Parameters
         ------------
@@ -258,8 +268,8 @@ class MenuHelpCommand(commands.HelpCommand):
             The discord.ui.View associated with the group detail.
         Returns
         --------
-        :class: Dict[str, Any]
-            The keyword arguments to be given onto the `Message.edit`.
+        Dict[str, Any]
+            The keyword arguments to be given onto the `:meth:`discord.Message.edit`.
         """
         return await self.__normalized_kwargs(self.format_error_detail, view)
 
@@ -270,11 +280,11 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        mapping: Mapping[Optional[Cog], List[Command]]
+        mapping: Mapping[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
             Mapping of Cog and list of Command to be filtered.
         Returns
         --------
-        :class: Mapping[Optional[Cog], List[Command]]
+        Mapping[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
             A mapping of Cog and list of Command that has been filtered`.
         """
         new_mapping = {}
@@ -293,7 +303,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        mapping: Mapping[Optional[Cog], List[Command]]
+        mapping: Mapping[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
             Mapping of Cog and list of Command associated with it.
         """
         filtered_commands = await self.cog_filter_commands(mapping)
@@ -301,16 +311,17 @@ class MenuHelpCommand(commands.HelpCommand):
         await self.initiate_view(view)
 
     async def initiate_view(self, view: Optional[discord.ui.View], **kwargs: Any) -> None:
-        """Initiate the view that was given by the `HelpMenuProvider`.
+        """Initiate the view that was given by the :class:`HelpMenuProvider`.
 
-        This assigned the initial Message into `MenuHelpCommand.original_message`.
+        This assigned the initial Message into :attr:`MenuHelpCommand.original_message`.
 
         Parameters
         ------------
         view: Optional[View]
             Mapping of Cog and list of Command associated with it.
         **kwargs: Any
-            Key arguments to be passed onto the `Message.send` or `View.start` if ViewAuthor was passed.
+            Key arguments to be passed onto the :meth:`discord.Message.send` or :meth:`discord.ui.View.start`
+            if :class:`ViewAuthor` was passed.
         """
         if isinstance(view, ViewAuthor):
             await view.start(self.context, **kwargs)
@@ -322,7 +333,7 @@ class MenuHelpCommand(commands.HelpCommand):
     async def send_cog_help(self, cog: commands.Cog, /) -> None:
         """Implementation of send cog help when a cog help command was requested.
 
-        This generally display a `discord.ui.View` given by the `HelpMenuProvider.provide_cog_view`.
+        This generally display a `discord.ui.View` given by the :meth:`HelpMenuProvider.provide_cog_view`.
 
         Parameters
         ------------
@@ -336,11 +347,11 @@ class MenuHelpCommand(commands.HelpCommand):
     async def send_command_help(self, command: _Command, /) -> None:
         """Implementation of send command help when a command help command was requested.
 
-        This generally display a `discord.ui.View` given by the `HelpMenuProvider.provide_command_view`.
+        This generally display a :class:`discord.ui.View` given by the :meth:`HelpMenuProvider.provide_command_view`.
 
         Parameters
         ------------
-        command: Command
+        command: :class:`commands.Command`
             The command instance that was requested.
         """
         view = await self.view_provider.provide_command_view(command)
@@ -349,11 +360,11 @@ class MenuHelpCommand(commands.HelpCommand):
     async def send_group_help(self, group: commands.Group[Any, ..., Any], /) -> None:
         """Implementation of send group help when a group help command was requested.
 
-        This generally display a `discord.ui.View` given by the `HelpMenuProvider.provide_group_view`.
+        This generally display a :class:`discord.ui.View` given by the :meth:`HelpMenuProvider.provide_group_view`.
 
         Parameters
         ------------
-        group: Group
+        group: :class:`commands.Group`
             The group instance that was requested.
         """
         view = await self.view_provider.provide_group_view(group)
@@ -362,11 +373,11 @@ class MenuHelpCommand(commands.HelpCommand):
     async def send_error_message(self, error: str, /) -> None:
         """Implementation of send error message when an error occurred within the help command.
 
-        This generally display a `discord.ui.View` given by the `HelpMenuProvider.provide_error_view`.
+        This generally display a :class:`discord.ui.View` given by the :meth:`HelpMenuProvider.provide_error_view`.
 
         Parameters
         ------------
-        error: str
+        error: :class:`str`
             The error message that will be displayed onto the user.
         """
         view = await self.view_provider.provide_error_view(error)
@@ -380,13 +391,13 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        view: HelpMenuBot
+        view: :class:`HelpMenuBot`
             The view paginator that is used.
-        mapping: Dict[Optional[Cog], List[Command]]
+        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
             The mapping that will be displayed.
         Returns
         --------
-        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+        Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
             The value to be display on the Message.
         """
         title="Help Command"
@@ -411,17 +422,17 @@ class MenuHelpCommand(commands.HelpCommand):
     async def format_cog_page(self, view: HelpMenuCog, cmds: List[_Command]) -> _OptionalFormatReturns:
         """Interface to display a cog help command paginated with a list of cog
 
-        When the total commands exceed `MenuHelpCommand.per_page`, they are automatically paginated.
+        When the total commands exceed :attr:`MenuHelpCommand.per_page`, they are automatically paginated.
 
         Parameters
         ------------
-        view: HelpMenuCog
+        view: :class:HelpMenuCog
             The view associated with the Cog help.
-        cmds: List[_Command]
+        cmds: List[:class:`commands.Command`]
             A list of commands that is associated with the Cog.
         Returns
         --------
-        :class: Union[discord.Embed, Dict[`str`, Any], `str`]
+        Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
             The value to be display on the Message.
         """
 
@@ -446,6 +457,22 @@ class PaginateHelpCommand(MenuHelpCommand):
         self.view_provider = HelpPaginateProvider(self)
 
     async def format_bot_page(self, view: HelpPaginateBot, cmds: List[_Command]) -> _OptionalFormatReturns:
+        """Interface to display a general description of all bot commands.
+
+        When the total cog exceed :attr:`PaginateHelpCommand.per_page`, they are automatically paginated.
+        This is shown as the first message of the help command.
+
+        Parameters
+        ------------
+        view: :class:`HelpPaginateBot`
+            The view paginator that is used.
+        cmds: List[:class:`commands.Command`]
+            The list of commands for each page.
+        Returns
+        --------
+        Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
+            The value to be display on the Message.
+        """
         current_page = view.current_page
         first_cmd = cmds[0]
         return discord.Embed(

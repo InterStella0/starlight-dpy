@@ -19,7 +19,7 @@ class ViewAuthor(discord.ui.View):
 
     Parameters
     ------------
-    delete_after: :class: `bool`
+    delete_after: :class:`bool`
         Indicate whether to delete the message after it has been stopped or timeout. Defaults to False.
     """
     def __init__(self, *, delete_after: bool = False, **kwargs):
@@ -33,17 +33,17 @@ class ViewAuthor(discord.ui.View):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
            Interaction that triggered the view.
 
         Raises
         -------
         NotViewOwner
-            Triggered when the interaction is unauthorized.
+            Triggered when the interaction is unauthorized. This is redirected to `View.on_error`.
 
         Returns
         --------
-        :class: `bool`
+        :class:`bool`
             The boolean to allow the interaction to invoke the item callback.
 
         """
@@ -53,14 +53,23 @@ class ViewAuthor(discord.ui.View):
         raise NotViewOwner("You cannot interact with this message.")
 
     async def on_timeout(self) -> None:
+        """Implementation for on_timeout that implements after processing calling on_stop."""
         await self.on_stop()
 
     def stop(self, *, on_stop: bool = True) -> None:
+        """Implementation of stop method.
+
+        Parameters
+        ------------
+        on_stop: :class:`bool`
+           Whether to trigger on_stop method for after processing. Defaults to True
+        """
         super().stop()
         if on_stop:
             asyncio.create_task(self.on_stop())
 
     async def on_stop(self):
+        """Implements after processing when the view was stopped or on_timeout triggers."""
         if self.message is None:
             return
 
@@ -91,7 +100,7 @@ class ViewAuthor(discord.ui.View):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
            Interaction that triggered the view.
         error: Exception
             Error that occurred.
@@ -117,9 +126,9 @@ class SimplePaginationView(ViewAuthor):
     ------------
     data_source: List[`T`]
        The data source that was paginated before hand.
-    delete_after: :class: `bool`
+    delete_after: :class:`bool`
         Indicate whether to delete the message after it has been stopped or timeout. Defaults to False.
-    cache_page: :class: `bool`
+    cache_page: :class:`bool`
         Indicate whether to cache the result of format_page for better performance.
         Defaults to False.
 
@@ -145,34 +154,56 @@ class SimplePaginationView(ViewAuthor):
 
     @property
     def data_source(self) -> List[T]:
+        """The data source that is given by the user."""
         return self._data_source.copy()
 
     async def change_source(self, data_source: List[T], *, interaction: Optional[discord.Interaction] = None, page: int = 0):
+        """Change the source of the pagination view. This will edit the view simultaneously.
+
+        Parameters
+        -----------
+        data_source: List[T]
+            The data source that will be set to the view.
+        interaction: Optional[:class:`discord.Interaction`]
+            The interaction that is involved on changing the source. It uses :meth:`discord.Message.edit` if
+            interaction is not provided.
+        page: :class:`int`
+            The page that will set the paginator to. Defaults to `0`.
+
+        """
         self._data_source = [*data_source]
         self.__max_pages: int = len(self._data_source)
         self.__cached_pages.clear()
         kwargs = await self.show_page(interaction, page)
-        edit = self.message.edit if interaction is None else interaction.response.edit_message
+        if kwargs is None:
+            return
+
+        edit = self.message.edit if interaction is None or interaction.response.is_done() else interaction.response.edit_message
         await edit(**kwargs)
 
     @discord.ui.button(emoji="⏪")
     async def start_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Implementation for the start button that sets the page to the first page."""
         await self.to_start(interaction)
 
     @discord.ui.button(emoji="◀️")
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Implementation for the previous button that change the page to the previous page."""
         await self.to_previous(interaction)
 
     @discord.ui.button(emoji="⏹️")
     async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Implementation for the stop button that stops the view."""
         await self.to_stop(interaction)
 
     @discord.ui.button(emoji="▶️")
     async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Implementation for the next button that change the page to the next page."""
         await self.to_next(interaction)
 
     @discord.ui.button(emoji="⏩")
     async def end_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Implementation for the end button that set the page to the end of the page."""
         await self.to_end(interaction)
 
     @property
@@ -189,7 +220,21 @@ class SimplePaginationView(ViewAuthor):
         """The maximum page of the pagination view that was given."""
         return self.__max_pages
 
-    async def show_page(self, interaction: Optional[discord.Interaction], page: int) -> Dict[str, Any]:
+    async def show_page(self, interaction: Optional[discord.Interaction], page: int) -> Optional[Dict[str, Any]]:
+        """Calls the :meth:`SimplePaginationView.format_page`.
+
+        Parameters
+        ------------
+        interaction: Optional[:class:`discord.Interaction`]
+            The interaction that will be provided to format_page method.
+        page: :class:`int`
+            The page that the format_page will set to.
+
+        Returns
+        ---------
+        Optional[Dict[:class:`str`, Any]]
+            Mapping of kwargs that should be given to the :meth:`discord.Message.edit`.
+        """
         self.current_page = page
         return await self.get_message_kwargs(interaction, self._data_source[page])
 
@@ -198,9 +243,9 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        context: `Context`
+        context:`Context`
             The context associated with the interaction.
-        wait: :class: `bool`
+        wait: :class:`bool`
             Indicates whether to wait until the pagination finishes. Default to False.
         message: Optional[Message]
             If there is already an initial message. Defaults to None.
@@ -213,6 +258,9 @@ class SimplePaginationView(ViewAuthor):
 
         resolve_interaction = context.interaction
         kwargs = await self.show_page(resolve_interaction, self.current_page)
+        if kwargs is None:
+            kwargs = {'view': self}
+
         if message is None:
             await super().start(context, **kwargs)
         else:
@@ -234,7 +282,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Optional[Interaction]
+        interaction: Optional[:class:`discord.Interaction`]
             The interaction associated with the view. Can be None when context.interaction is None during the initial
             message send.
         data: T
@@ -243,6 +291,21 @@ class SimplePaginationView(ViewAuthor):
 
     async def resolved_message_kwargs(self, interaction: Optional[discord.Interaction], data: T
                                       ) -> Optional[Dict[str, Any]]:
+        """This method handles the cache_page implementation.
+
+        Parameters
+        ------------
+        interaction: Optional[:class:`discord.Interaction`]
+            The interaction associated with the view interaction.
+        data: T
+            The data that will be on each page. This type is based on `data_source`.
+
+        Returns
+        --------
+        Optional[Dict[:class:`str`, Any]]
+            The kwargs that can be provided on :meth:`discord.Message.edit`. This does not provide you the view key
+            argument.
+        """
         page = None
         if self.cache_page:
             page = self.__cached_pages.get(self.current_page)
@@ -269,7 +332,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Optional[Interaction]
+        interaction: Optional[:class:`discord.Interaction`]
             The interaction associated with the view. Can be None when context.interaction is None during the initial
             message send.
         data: T
@@ -277,9 +340,9 @@ class SimplePaginationView(ViewAuthor):
 
         Returns
         --------
-        Union[Embed, Dict[str, Any], str]
+        Union[Embed, Dict[:class:`str`, Any], :class:`str`]
             The object that will displayed onto the Message. Returning a dictionary is a keyword arguments for the
-            `Message.edit`. By default this returns the str of `data` argument.
+            :meth:`discord.Message.edit`. By default this returns the str of `data` argument.
 
         """
         return str(data)
@@ -301,9 +364,9 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that is changing the page.
-        page: :class: `int`
+        page: :class:`int`
             The page that the View will switch to.
 
         """
@@ -328,7 +391,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that is changing the page.
 
         """
@@ -339,7 +402,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that is changing the page.
 
         """
@@ -350,7 +413,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that is stopping the view.
 
         """
@@ -362,7 +425,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that is changing the page.
 
         """
@@ -373,7 +436,7 @@ class SimplePaginationView(ViewAuthor):
 
         Parameters
         ------------
-        interaction: Interaction
+        interaction: :class:`discord.Interaction`
             The interaction that is changing the page.
 
         """

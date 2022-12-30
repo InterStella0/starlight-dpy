@@ -37,6 +37,15 @@ class InlineIterator(Generic[T]):
 
 _InlineViewReturn = Tuple[discord.Interaction, discord.ui.Item]
 class InlineView(InlineIterator[_InlineViewReturn]):
+    """Implementation of Inline View concepts.
+
+    Parameters
+    -----------
+    view: :class:`discord.ui.View`
+        The view that will be convertede into inline view.
+    item: Optional[:class:`discord.ui.Item`]
+        The item that should be listen for.
+    """
     def __init__(self, view: discord.ui.View, *, item: Optional[discord.ui.Item] = None) -> None:
         self.view: discord.ui.View = view
         self._result: Optional[_InlineViewReturn] = None
@@ -54,6 +63,7 @@ class InlineView(InlineIterator[_InlineViewReturn]):
             await self.__timeout_callback()
 
     def stop(self) -> None:
+        """Implementation of stop. This is automatically called once the view was stopped or timeout."""
         self._unplug()
         if not self.__is_timeout and self.__stop_callback:
             self.__stop_callback()
@@ -98,11 +108,12 @@ class InlineView(InlineIterator[_InlineViewReturn]):
 
 inline_view = InlineView
 
+Chunk = TypeVar('Chunk', bound="InlinePaginationItem")
 
-class InlinePaginationItem:
-    def __init__(self, interaction: discord.Interaction, data: T) -> None:
+class InlinePaginationItem(Generic[Chunk]):
+    def __init__(self, interaction: discord.Interaction, data: Chunk) -> None:
         self.interaction: discord.Interaction = interaction
-        self.data: T = data
+        self.data: Chunk = data
         self._future = asyncio.Future()
 
     def format(self, **kwargs: Any) -> None:
