@@ -9,5 +9,6 @@ Welcome to starlight-dpy's documentation!
 .. toctree::
    :maxdepth: 2
 
+   examples
    help-command
    views

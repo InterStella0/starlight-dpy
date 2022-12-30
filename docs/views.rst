@@ -11,11 +11,13 @@ ViewAuthor
 ~~~~~~~~~~~
 .. autoclass:: ViewAuthor
     :members:
+    :show-inheritance:
 
 SimplePaginationView
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: SimplePaginationView
     :members:
+    :show-inheritance:
 
 Helpers
 ---------
@@ -24,10 +26,17 @@ InlineView
 ~~~~~~~~~~~~
 .. autoclass:: InlineView
     :members:
+    :show-inheritance:
+
 
 InlinePagination
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: InlinePagination
     :members:
+    :show-inheritance:
 
 
+InlinePaginationItem
+~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: InlinePaginationItem
+    :members:
