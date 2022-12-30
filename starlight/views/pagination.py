@@ -38,8 +38,8 @@ class ViewAuthor(discord.ui.View):
 
         Raises
         -------
-        NotViewOwner
-            Triggered when the interaction is unauthorized. This is redirected to `View.on_error`.
+        :class:`NotViewOwner`
+            Triggered when the interaction is unauthorized. This is redirected to :meth:`ViewAuthor.on_error`.
 
         Returns
         --------
@@ -89,7 +89,7 @@ class ViewAuthor(discord.ui.View):
 
         Parameters
         ------------
-        context: Context
+        context: :class:`commands.Context`
            The context that will be used to send a message.
         """
         self.context = context
@@ -102,9 +102,9 @@ class ViewAuthor(discord.ui.View):
         ------------
         interaction: :class:`discord.Interaction`
            Interaction that triggered the view.
-        error: Exception
+        error: :class:`Exception`
             Error that occurred.
-        item: Item
+        item: :class:`discord.ui.Item`
             The item that is associated during the error occurrance.
         """
         if isinstance(error, NotViewOwner):
@@ -134,9 +134,9 @@ class SimplePaginationView(ViewAuthor):
 
     Attributes
     -----------
-    context: Optional[Context]
+    context: Optional[:class:`commands.Context`]
         The context that is associated with this pagination view.
-    message: Optional[Message]
+    message: Optional[:class:`discord.Message`]
         The initial message that was sent to the user to be overwritten every interaction.
     """
 

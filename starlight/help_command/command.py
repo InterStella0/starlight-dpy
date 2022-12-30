@@ -427,7 +427,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        view: :class:HelpMenuCog
+        view: :class:`HelpMenuCog`
             The view associated with the Cog help.
         cmds: List[:class:`commands.Command`]
             A list of commands that is associated with the Cog.

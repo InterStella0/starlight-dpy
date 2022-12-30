@@ -14,6 +14,7 @@ __all__ = (
     "InlineView",
     "inline_pagination",
     "InlinePagination",
+    "InlinePaginationItem",
 )
 
 T = TypeVar("T", bound="InlineIterator")
@@ -42,7 +43,7 @@ class InlineView(InlineIterator[_InlineViewReturn]):
     Parameters
     -----------
     view: :class:`discord.ui.View`
-        The view that will be convertede into inline view.
+        The view that will be converted into inline view.
     item: Optional[:class:`discord.ui.Item`]
         The item that should be listen for.
     """
@@ -111,19 +112,55 @@ inline_view = InlineView
 Chunk = TypeVar('Chunk', bound="InlinePaginationItem")
 
 class InlinePaginationItem(Generic[Chunk]):
+    """Implementation for inline pagination item.
+
+    This is automatically created by :class:`InlinePagination`. User should not create this.
+
+    Parameters
+    -----------
+    interaction: :class:`discord.Interaction`
+        Interaction that invoked the format_page.
+    data: Chunk
+        Data chunks that should be displayed onto the user. The type is depended on `data_source`.
+    """
     def __init__(self, interaction: discord.Interaction, data: Chunk) -> None:
         self.interaction: discord.Interaction = interaction
         self.data: Chunk = data
         self._future = asyncio.Future()
 
     def format(self, **kwargs: Any) -> None:
+        """A method that signals the paginator on what format should the message show to the user.
+
+        Parameters
+        -----------
+        kwargs: Any
+            Key arguments that will be given to :meth:`discord.Message.edit`. Not passing anything will ignore the
+            sequence.
+        """
         self._future.set_result(kwargs)
 
     async def wait(self) -> Dict[str, Any]:
+        """Waits for the result to be set on the item.
+
+        Returns
+        --------
+            Dict[:class:`str`, Any]
+            The mapping that was set by the :meth:`InlinePaginationItem.format`.
+        """
         return await self._future
 
 
 class InlinePagination(InlineIterator[InlinePaginationItem]):
+    """Async iterator that implements inline pagination view.
+
+    Parameters
+    -----------
+        pagination_view: :class:`SimplePaginationView`
+            The pagination view that will be overwritten.
+
+        context: :class:`commands.Context`
+            The context object that will be used to send and manipulate the message.
+    """
     def __init__(self, pagination_view: SimplePaginationView, context: commands.Context) -> None:
         self.pagination_view: SimplePaginationView = pagination_view
         self.context = context
@@ -143,6 +180,7 @@ class InlinePagination(InlineIterator[InlinePaginationItem]):
             await self.__timeout_callback()
 
     def stop(self) -> None:
+        """Stops the inline pagination iterator. This will also stop the :attr:`InlinePagination.pagination_view`."""
         self._unplug()
         if not self.__is_timeout and self.__stop_callback:
             self.__stop_callback()
