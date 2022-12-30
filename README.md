@@ -87,6 +87,27 @@ bot = commands.Bot(
 
 ![output.png](docs/images/customize_menu_help.png)
 
+## Paginate Help Command
+Similar to MenuHelpCommand, with a difference where it uses
+purely buttons for navigation.
+```python
+import starlight
+import discord
+
+from discord.ext import commands
+
+bot = commands.Bot(
+    command_prefix="??",
+    help_command=starlight.PaginateHelpCommand(),
+    intents=discord.Intents.all()
+)
+```
+
+**Output**
+
+![output.png](docs/images/default_paginate_help.png)
+
+
 ## Inline View
 Create inline view for distinct behaviours with `starlight.inline_view`.
 

@@ -10,6 +10,8 @@ Types of HelpCommand
 
 MenuHelpCommand
 ----------------
+Utilizes components to display commands. Uses Select as the general
+help command navigation.
 .. code-block:: python
 
     import starlight
@@ -31,6 +33,29 @@ MenuHelpCommand
 **Output**
 
 .. image:: /images/default_menu_help.png
+
+
+PaginateHelpCommand
+--------------------
+Utilizes components to display commands. Uses Button as the general
+help command navigation.
+
+.. code-block:: python
+
+    import starlight
+    import discord
+
+    from discord.ext import commands
+
+    bot = commands.Bot(
+        command_prefix="??",
+        help_command=starlight.PaginateHelpCommand(),
+        intents=discord.Intents.all()
+    )
+
+**Output**
+
+.. image:: /images/default_paginate_help.png
 
 
 Views
