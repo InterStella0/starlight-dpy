@@ -17,16 +17,9 @@
 .property > span{
     color: #C955F3 !important;
 }
-.sig-paren{
+.sig-paren, .sig-param{
     color: #C955F3 !important;
 }
-
-.sig-param{
-    color: #C955F3 !important;
-}
-span.nf{
-    color: #ffcccb !important;
-}
-span.mi{
-    color: #ffcccb !important;
+span.nf, span.nc, span.mi, span.mh{
+    color: #d93939 !important;
 }

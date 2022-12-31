@@ -62,6 +62,7 @@ help command navigation.
 Views
 ~~~~~~
 There are several implementation of views within the library.
+
 Pagination View
 -----------------
 A simple pagination interface.
@@ -113,6 +114,7 @@ Available methods to override are as follows:
 **Example**
 
 .. code-block:: python
+
     import starlight
 
     class MyPaginationView(starlight.SimplePaginationView):
@@ -124,7 +126,9 @@ Available methods to override are as follows:
     view = MyPaginationView(['hello', 'my', 'name', 'stella'])
     await view.start(ctx)
 
-Overriding corresponding buttons will completely replace the button.
+
+Overriding corresponding buttons will completely replace the button. However,
+it does retain the position of the button.
 
 .. note::
     By default, :meth:`SimplePaginationView.format_page` returns an str version of your elements.
