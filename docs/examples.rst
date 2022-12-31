@@ -92,6 +92,42 @@ was dedicated for Reaction which has made it not ideal to be inherited.
 
 .. image:: /images/pagination_view.png
 
+
+Customizing Pagination Button
+------------------------------
+The base of SimplePaginationView subclasses :class:`discord.ui.View`.
+You can override the buttons with the :func:`discord.ui.button` decorator.
+
+Once you override the decorator, you should use the existing method to
+apply the navigation behaviour you want.
+
+Available methods to override are as follows:
+    * :meth:`SimplePaginationView.start_button` uses :meth:`SimplePaginationView.to_start`
+    * :meth:`SimplePaginationView.previous_button` uses :meth:`SimplePaginationView.to_previous`
+    * :meth:`SimplePaginationView.stop_button` uses :meth:`SimplePaginationView.to_stop`
+    * :meth:`SimplePaginationView.next_button` uses :meth:`SimplePaginationView.to_next`
+    * :meth:`SimplePaginationView.end_button` uses :meth:`SimplePaginationView.to_end`
+
+
+**Example**
+
+.. code-block:: python
+    import starlight
+
+    class MyPaginationView(starlight.SimplePaginationView):
+        @discord.ui.button(label="Stop", style=discord.ButtonStyle.red)
+        async def stop_button(self, interaction, button):
+            await self.to_stop(interaction)
+
+    # in command
+    view = MyPaginationView(['hello', 'my', 'name', 'stella'])
+    await view.start(ctx)
+
+
+**Output**
+
+.. image:: /images/customize_pagination_view.png
+
 Inline View
 ------------
 Create inline view for distinct behaviours with `starlight.inline_view`.
