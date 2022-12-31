@@ -89,7 +89,7 @@ class ViewAuthor(discord.ui.View):
 
         Parameters
         ------------
-        context: :class:`commands.Context`
+        context: :class:`~discord.ext.commands.Context`
            The context that will be used to send a message.
         """
         self.context = context
@@ -134,7 +134,7 @@ class SimplePaginationView(ViewAuthor):
 
     Attributes
     -----------
-    context: Optional[:class:`commands.Context`]
+    context: Optional[:class:`~discord.ext.commands.Context`]
         The context that is associated with this pagination view.
     message: Optional[:class:`discord.Message`]
         The initial message that was sent to the user to be overwritten every interaction.
@@ -443,5 +443,32 @@ class SimplePaginationView(ViewAuthor):
         await self.change_page(interaction, self.max_pages - 1)
 
     @classmethod
-    def from_paginator(cls, paginator: commands.Paginator, **kwargs) -> SimplePaginationView:
+    def from_paginator(cls, paginator: commands.Paginator, **kwargs: Any) -> SimplePaginationView:
+        """Classmethod to construct pagination view with :class:`~discord.ext.commands.Paginator`.
+
+        .. code-block:: python
+
+            paginator = commands.Paginator()
+            paginator.add_line("Page 1\\n Hello!")
+            paginator.close_page()
+            paginator.add_line("Page 2\\n World!")
+            paginator.close_page()
+            view = starlight.SimplePaginationView.from_paginator(paginator)
+            await view.start(ctx)
+
+        This are constructed normally.
+
+        Parameters
+        ------------
+        paginator: :class:`~discord.ext.commands.Paginator`
+            The paginator that will be used.
+        kwargs: Any
+            Key arguments that will be passed to :class:`SimplePaginationView`.
+
+
+        Returns
+        --------
+        :class:`SimplePaginationView`
+            The view paginator constructed.
+        """
         return cls(paginator.pages, **kwargs)

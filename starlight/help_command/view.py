@@ -443,9 +443,9 @@ class HelpMenuProvider(BaseHelpProvider):
 
         Parameters
         ------------
-        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        mapping: Dict[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             A filtered mapping of cogs to commands that have been requested by the user for help.
-            The key of the mapping is the :class:`commands.Cog` that the command belongs to, or
+            The key of the mapping is the :class:`~discord.ext.commands.Cog` that the command belongs to, or
             ``None`` if there isn't one, and the value is a list of commands that belongs to that cog.
 
         Returns
@@ -561,7 +561,7 @@ class HelpPaginateBot(SimplePaginationView):
     -----------
     help_command: :class:`PaginateHelpCommand`
         The help command that is associated with this view.
-    mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+    mapping: Dict[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
         The mapping that was given by the help command.
     """
 
@@ -624,9 +624,9 @@ class HelpPaginateProvider(HelpMenuProvider):
 
         Parameters
         ------------
-        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        mapping: Dict[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             A filtered mapping of cogs to commands that have been requested by the user for help.
-            The key of the mapping is the :class:`commands.Cog` that the command belongs to, or
+            The key of the mapping is the :class:`~discord.ext.commands.Cog` that the command belongs to, or
             ``None`` if there isn't one, and the value is a list of commands that belongs to that cog.
 
         Returns

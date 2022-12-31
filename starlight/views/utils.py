@@ -158,7 +158,7 @@ class InlinePagination(InlineIterator[InlinePaginationItem]):
         pagination_view: :class:`SimplePaginationView`
             The pagination view that will be overwritten.
 
-        context: :class:`commands.Context`
+        context: :class:`~discord.ext.commands.Context`
             The context object that will be used to send and manipulate the message.
     """
     def __init__(self, pagination_view: SimplePaginationView, context: commands.Context) -> None:

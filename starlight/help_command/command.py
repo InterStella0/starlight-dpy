@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 class MenuHelpCommand(commands.HelpCommand):
     """HelpCommand implementation for MenuHelpCommand which utilizes :class:`discord.ui.Select`
-    for :class:`commands.Cog` selection and :class:`discord.ui.Button` for command pagination.
+    for :class:`~discord.ext.commands.Cog` selection and :class:`discord.ui.Button` for command pagination.
 
     Attributes
     ------------
@@ -106,7 +106,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        command: :class:`commands.Command`
+        command: :class:`~discord.ext.commands.Command`
             The command to get the signature of.
 
         Returns
@@ -121,7 +121,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        command: :class:`commands.Command`
+        command: :class:`~discord.ext.commands.Command`
             The command to get the signature of.
         Returns
         --------
@@ -195,7 +195,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        cog: Optional[:class:`commands.Cog`]
+        cog: Optional[:class:`~discord.ext.commands.Cog`]
             The cog to resolve the name.
         Returns
         --------
@@ -220,7 +220,7 @@ class MenuHelpCommand(commands.HelpCommand):
         ------------
         view: :class:`HelpMenuBot`
             The view paginator that is used.
-        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        mapping: Dict[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             The dictionary that is mapped on Cog and the list Command associated with it.
         Returns
         --------
@@ -281,11 +281,11 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        mapping: Mapping[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        mapping: Mapping[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             Mapping of Cog and list of Command to be filtered.
         Returns
         --------
-        Mapping[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        Mapping[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             A mapping of Cog and list of Command that has been filtered`.
         """
         new_mapping = {}
@@ -304,7 +304,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        mapping: Mapping[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        mapping: Mapping[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             Mapping of Cog and list of Command associated with it.
         """
         filtered_commands = await self.cog_filter_commands(mapping)
@@ -352,7 +352,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        command: :class:`commands.Command`
+        command: :class:`~discord.ext.commands.Command`
             The command instance that was requested.
         """
         view = await self.view_provider.provide_command_view(command)
@@ -365,7 +365,7 @@ class MenuHelpCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        group: :class:`commands.Group`
+        group: :class:`~discord.ext.commands.Group`
             The group instance that was requested.
         """
         view = await self.view_provider.provide_group_view(group)
@@ -394,7 +394,7 @@ class MenuHelpCommand(commands.HelpCommand):
         ------------
         view: :class:`HelpMenuBot`
             The view paginator that is used.
-        mapping: Dict[Optional[:class:`commands.Cog`], List[:class:`commands.Command`]]
+        mapping: Dict[Optional[:class:`~discord.ext.commands.Cog`], List[:class:`~discord.ext.commands.Command`]]
             The mapping that will be displayed.
         Returns
         --------
@@ -429,7 +429,7 @@ class MenuHelpCommand(commands.HelpCommand):
         ------------
         view: :class:`HelpMenuCog`
             The view associated with the Cog help.
-        cmds: List[:class:`commands.Command`]
+        cmds: List[:class:`~discord.ext.commands.Command`]
             A list of commands that is associated with the Cog.
         Returns
         --------
@@ -467,7 +467,7 @@ class PaginateHelpCommand(MenuHelpCommand):
         ------------
         view: :class:`HelpPaginateBot`
             The view paginator that is used.
-        cmds: List[:class:`commands.Command`]
+        cmds: List[:class:`~discord.ext.commands.Command`]
             The list of commands for each page.
         Returns
         --------
