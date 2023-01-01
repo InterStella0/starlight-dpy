@@ -3,6 +3,8 @@ from .help_command.view import *
 from .errors.view import *
 from .views.pagination import *
 from .views.utils import *
+from .utils.search import *
+
 from typing import NamedTuple, Literal
 
 __title__ = 'starlight-dpy'
