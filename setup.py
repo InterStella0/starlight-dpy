@@ -12,6 +12,7 @@ packages = [
     "starlight.help_command",
     "starlight.views",
     "starlight.errors",
+    "starlight.utils",
 ]
 
 with open('README.md', encoding="utf8") as f:

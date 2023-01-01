@@ -12,3 +12,4 @@ Welcome to starlight-dpy's documentation!
    examples
    help-command
    views
+   general-utility

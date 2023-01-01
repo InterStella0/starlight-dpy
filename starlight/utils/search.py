@@ -8,6 +8,7 @@ from typing import (
     TYPE_CHECKING,
     TypeVar,
     Generic,
+    Any,
 )
 
 T = TypeVar('T')
@@ -40,6 +41,8 @@ __all__ = (
 
 class SearchFilter(Generic[T]):
     """Base class for filtering with :func:`search`.
+
+    User should subclass this class for compatibility with :func:`search`.
 
     Parameters
     ------------
@@ -78,6 +81,7 @@ class ContainsFilter(SearchFilter[Any]):
         starlight.search(items, my_attr=ContainsFilter('my_value'))
 
     Equivalent of
+
     .. code-block:: python3
 
         [item for item in items if 'my_value' in item.my_attr]
@@ -104,6 +108,7 @@ class ContainsFilter(SearchFilter[Any]):
         """
         return self.query in value
 
+
 Contains = ContainsFilter
 
 
@@ -119,7 +124,9 @@ class FuzzyFilter(SearchFilter[str]):
 
     .. code-block:: python3
 
-        [item for item in items if 'value' in str(item.my_attr) or quick_ratio('value', str(item.my_attr)) >= 0.5]
+        [item for item in items
+         if 'value' in str(item.my_attr)
+         or quick_ratio('value', str(item.my_attr)) >= 0.5]
 
     Parameters
     ------------
@@ -173,6 +180,7 @@ class FuzzyFilter(SearchFilter[str]):
             The value to sort this item by.
         """
         return self.get_ratio(self.query, str(value))
+
 
 Fuzzy = FuzzyFilter
 
@@ -331,19 +339,32 @@ def search(
     Examples
     ---------
     Using :class:`SearchFilter`:
+
     .. code-block:: python3
 
-        cmds_by_name_and_desc = await starlight.search(bot.commands, name=FuzzyFilter('user'), description=ContainsFilter('user'))
+        cmds_by_name_and_desc = await starlight.search(bot.commands,
+            name=FuzzyFilter('user'),
+            description=ContainsFilter('user')
+        )
 
     Sorting output based on fuzzy ratio:
+
     .. code-block:: python3
 
-        sorted_cmds_by_fuzzy_name = await starlight.search(bot.commands, sort=True, name=FuzzyFilter('user'))
+        sorted_cmds_by_fuzzy_name = await starlight.search(bot.commands,
+            sort=True,
+            name=FuzzyFilter('user')
+        )
 
     Use logical OR for attribute matching:
+
     .. code-block:: python3
 
-        cmds_by_name_or_desc = await starlight.search(bot.commands, check_any=True, name=FuzzyFilter('user'), description=ContainsFilter('user'))
+        cmds_by_name_or_desc = await starlight.search(bot.commands,
+            check_any=True,
+            name=FuzzyFilter('user'),
+            description=ContainsFilter('user')
+        )
 
     Parameters
     -----------
