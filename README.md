@@ -202,5 +202,22 @@ async def my_command(ctx):
 
 The output of this code is the equivalent of the Pagination View example.
 
-# Links
+# General Utility
+## Search
+An extended version of `discord.utils.get()`. However, it is a filter that returns
+a sequence. This also supports for fuzzy matching as they are relatively
+common to be used within a discord bot.
+
+```python
+from starlight import search, Contains
+# Contains is alias of ContainsFilter class
+items_with_my_value = search(items, my_attr=Contains('my_value'))
+
+# Equivalent of
+items_contains_value = [item for item in items if 'my_value' in item.my_attr]
+```
+
+
+# References
 - [Documentation](https://starlight-dpy.readthedocs.io/en/latest/)
+- [Discord.py Docs](https://discordpy.readthedocs.io/en/stable)
