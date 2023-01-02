@@ -35,6 +35,5 @@ class UsefulCog(commands.Cog, name="Useful Category"):
         cmds = await tree.sync(guild=guild)
         await ctx.send(f"Sync `{len(cmds)}` commands.")
 
-
 async def setup(bot: commands.Bot):
     await bot.add_cog(UsefulCog(bot))

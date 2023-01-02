@@ -1,4 +1,5 @@
-from typing import Optional
+from collections import namedtuple
+from typing import Optional, Sequence
 
 import discord
 from discord.ext import commands
@@ -33,8 +34,11 @@ class MyHelpCommand(starlight.MenuHelpCommand):
         await super().command_callback(ctx, command=command)
 
     async def command_search(self, command: str):
-        cmds = list(self.context.bot.all_commands.values())
-        found_cmds = starlight.search(cmds, qualified_name=Fuzzy(command))
+        bot = self.context.bot
+        CommandAliases = namedtuple("CommandAliases", "all_names")
+        cmd_names = [CommandAliases([c.qualified_name, *c.aliases]) for c in  bot.all_commands.values()]
+        found_cmd_names = starlight.search(cmd_names, sort=True, all_names=FuzzyContainsFilter(command))
+        found_cmds = [bot.get_command(x.all_names[0]) for x in found_cmd_names]
         found_cmds = [x for x in dict.fromkeys(found_cmds)]  # unique commands
         if not found_cmds:
             raise commands.BadArgument(f"No command found for {command}")
@@ -45,9 +49,13 @@ class MyHelpCommand(starlight.MenuHelpCommand):
         async for item in inline:
             embed = discord.Embed(title=f"List of command similar to '{command}'", color=self.accent_color)
             for cmd in item.data:
-                embed.add_field(name=self.get_command_signature(cmd), value=cmd.short_doc, inline=False)
+                docs = f"**Description: **{cmd.short_doc}"
+                if cmd.aliases:
+                    docs = f"**Aliases: **{', '.join(cmd.aliases)}\n" + docs
+                embed.add_field(name=self.get_command_signature(cmd), value=docs, inline=False)
 
-            content = f"No command found with `{command}`." if not view.current_page else None
+            no_cmd = "No command found for `{}`. Here is the result for similar to it."
+            content = no_cmd.format(command) if not view.current_page else None
             item.format(content=content, embed=embed)
 
     async def format_bot_page(self, view, mapping):
@@ -85,3 +93,9 @@ class MyHomeButton(starlight.MenuHomeButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.emoji = '🏘️'
+
+
+class FuzzyContainsFilter(Fuzzy):
+    """This custom filter searches the entire sequence if there is a higher ratio value within an attribute."""
+    def filter(self, value: Sequence, /) -> float:
+        return max(self.get_ratio(self.query, x) for x in value)

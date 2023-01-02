@@ -10,6 +10,7 @@ class ErrorHandler(commands.Cog):
             return
 
         await ctx.send(str(error))
+        raise error
 
 
 async def setup(bot):
