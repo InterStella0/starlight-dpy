@@ -4,6 +4,7 @@ Examples
 ==========
 A brief use case of each feature of the library.
 
+You can see a live bot example `here <https://github.com/InterStella0/starlight-dpy/tree/main/examples/live-bot>`_.
 
 Types of HelpCommand
 ~~~~~~~~~~~~~~~~~~~~
