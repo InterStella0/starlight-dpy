@@ -1,11 +1,9 @@
-from collections import namedtuple
-from typing import Optional, Sequence
+from typing import Optional
 
 import discord
 from discord.ext import commands
 
 import starlight
-from starlight.utils.search import Fuzzy
 
 from utils.pagination import StellaPagination
 
@@ -34,18 +32,14 @@ class MyHelpCommand(starlight.MenuHelpCommand):
         await super().command_callback(ctx, command=command)
 
     async def command_search(self, command: str):
-        bot = self.context.bot
-        CommandAliases = namedtuple("CommandAliases", "all_names")
-        cmd_names = [CommandAliases([c.qualified_name, *c.aliases]) for c in  bot.all_commands.values()]
-        found_cmd_names = starlight.search(cmd_names, sort=True, all_names=FuzzyContainsFilter(command))
-        found_cmds = [bot.get_command(x.all_names[0]) for x in found_cmd_names]
-        found_cmds = [x for x in dict.fromkeys(found_cmds)]  # unique commands
+        ctx = self.context
+        found_cmds = starlight.search(ctx.bot.commands, sort=True, qualified_name=starlight.Fuzzy(command))
         if not found_cmds:
             raise commands.BadArgument(f"No command found for {command}")
 
         data = discord.utils.as_chunks(found_cmds, 5)
         view = StellaPagination(data, cache_page=True)
-        inline = starlight.inline_pagination(view, self.context)
+        inline = starlight.inline_pagination(view, ctx)
         async for item in inline:
             embed = discord.Embed(title=f"List of command similar to '{command}'", color=self.accent_color)
             for cmd in item.data:
@@ -93,9 +87,3 @@ class MyHomeButton(starlight.MenuHomeButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.emoji = '🏘️'
-
-
-class FuzzyContainsFilter(Fuzzy):
-    """This custom filter searches the entire sequence if there is a higher ratio value within an attribute."""
-    def filter(self, value: Sequence, /) -> float:
-        return max(self.get_ratio(self.query, x) for x in value)
