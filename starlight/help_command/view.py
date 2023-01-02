@@ -175,28 +175,22 @@ class HelpMenuBot(SimplePaginationView):
         The help command that is associated with this view.
     mapping: Dict[Optional[Cog], List[Command]]
         The full mapping of commands and Cog that will be display.
-    no_category: :class:`str`
-        The text that will be displayed when a cog is None. Defaults to 'No Category'.
     cog_per_page: Optional[:class:`int`]
         The amount of cogs that are displayed in a given page. Defaults to `MenuHelpCommand.per_page`.
-    cls_home_button: Type[MenuHomeButton]
-        The class that will be instantiate for the home button. This is to toggle the view between the list of cogs
-        and the selected cog command lists. Defaults to `MenuHomeButton`.
 
     """
 
     def __init__(self, help_command: MenuHelpCommand, mapping: _MappingBotCommands,
-                 *, no_category: str = "No Category", cog_per_page: Optional[int] = None,
-                 cls_home_button: Type[MenuHomeButton] = MenuHomeButton, **kwargs):
+                 *, cog_per_page: Optional[int] = None, **kwargs):
         self.cog_per_page: int = cog_per_page or help_command.per_page
         super().__init__(self._paginate_cogs([*mapping]), **kwargs)
         self.navigation_buttons = ['previous_button', 'next_button']
         self._manipulate_buttons(help_command.pagination_buttons)
-        self.no_category: str = no_category
+        self.no_category: str = help_command.no_category
         self.help_command: MenuHelpCommand = help_command
         self._dropdown: Optional[MenuDropDown] = None
         self.__mapping = mapping
-        self._home_button = cls_home_button(self, label="Home")
+        self._home_button = help_command.cls_home_button(self, label="Home")
         self.__visible: bool = False
         self._pagination_cog_view: Optional[ViewAuthor] = None
         self._rem_navigation()
@@ -243,17 +237,28 @@ class HelpMenuBot(SimplePaginationView):
         return discord.utils.as_chunks(cogs, self.cog_per_page)
 
     def generate_dropdown(self, cogs: List[Optional[commands.Cog]], **kwargs) -> MenuDropDown:
-        menu = MenuDropDown(no_category=self.no_category, **kwargs)
-        menu.set_cogs(cogs)
-        return menu
+        """Generates a :class:`~discord.ui.Select` that lists cogs.
+
+        User can use this to modify the dropdown.
+
+        Parameters
+        -----------
+            cogs: List[Optional[:class:`~discord.ext.commands.Cog`]]
+
+        Returns
+        --------
+            :class:`MenuDropDown`
+        """
+        return MenuDropDown(no_category=self.no_category, **kwargs)
 
     def format_view(self, interaction: Optional[discord.Interaction], data: List[Optional[commands.Cog]]) -> None:
-        if not self.current_dropdown:
+        dropdown = self.current_dropdown
+        if not dropdown:
             row = min([getattr(self, x).row or 0 for x in self.navigation_buttons if hasattr(self, x)])
             self._dropdown = dropdown = self.generate_dropdown(data, row=None if row == 0 else row - 1)
             self.add_item(dropdown)
-        else:
-            self.current_dropdown.set_cogs(data)
+
+        dropdown.set_cogs(data)
 
     async def format_page(self, interaction: discord.Interaction, data: List[Optional[commands.Cog]]
                           ) -> _OptionalFormatReturns:
@@ -453,10 +458,7 @@ class HelpMenuProvider(BaseHelpProvider):
         :class:`HelpMenuBot`
             The view for the MenuHelpCommand
         """
-        help_command = self.help_command
-        return HelpMenuBot(
-            help_command, mapping, no_category=help_command.no_category, cls_home_button=help_command.cls_home_button
-        )
+        return HelpMenuBot(self.help_command, mapping)
 
     async def provide_cog_view(self, cog: commands.Cog, cog_commands: List[commands.Command]) -> HelpMenuCog:
         """

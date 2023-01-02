@@ -5,6 +5,7 @@ from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type, TYP
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import HybridCommand
 
 from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton, \
     HelpPaginateProvider, HelpPaginateBot, HelpMenuBot
@@ -146,6 +147,13 @@ class MenuHelpCommand(commands.HelpCommand):
         group = view.group
         subcommands = "\n".join([self.format_command_brief(cmd) for cmd in group.commands])
         group_description = group.help or self.no_documentation
+
+        if group.aliases:
+            group_description += f"\n\n**Aliases**\n{', '.join(group.aliases)}"
+
+        if isinstance(group, commands.HybridGroup):
+            group_description += f"\n\n*Slash command available.*"
+
         description = group_description + f"\n\n**Subcommands**\n{subcommands}" if subcommands else ""
         return discord.Embed(
             title=self.get_command_signature(group),
@@ -166,9 +174,16 @@ class MenuHelpCommand(commands.HelpCommand):
             The value to be display on the Message.
         """
         cmd = view.command
+        desc = cmd.help
+        if cmd.aliases:
+            desc += f"\n\n**Aliases**\n{', '.join(cmd.aliases)}"
+
+        if isinstance(cmd, HybridCommand):
+            desc += f"\n\n*Slash command available.*"
+
         return discord.Embed(
             title=self.get_command_signature(cmd),
-            description=cmd.help,
+            description=desc,
             color=self.accent_color
         )
 
