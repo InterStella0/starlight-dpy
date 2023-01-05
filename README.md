@@ -217,7 +217,7 @@ items_with_my_value = search(items, my_attr=Contains('my_value'))
 items_contains_value = [item for item in items if 'my_value' in item.my_attr]
 ```
 
-## Hybrid Help Command
+## Help Hybrid Command
 Hybrid is a term to implement both text and slash command in
 discord.py. HelpCommand was explicitly only a text command. To
 change it to a hybrid, you can use `starlight.convert_help_hybrid`.
