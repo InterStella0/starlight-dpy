@@ -32,5 +32,6 @@ class FunCog(commands.Cog, name="Fun Category"):
 
         await ctx.send(response.format(choice, result))
 
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(FunCog())

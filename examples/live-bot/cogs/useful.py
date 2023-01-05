@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+import starlight
 from utils.help_command import MyHelpCommand
 
 
@@ -8,9 +9,11 @@ class UsefulCog(commands.Cog, name="Useful Category"):
     """Commands that could be useful."""
     def __init__(self, bot):
         self.emoji = "🇺"
-        bot.help_command = help_command = MyHelpCommand(
-            inline_fields=False, accent_color=bot.accent_color, error_color=bot.error_color
-        )  # load the help command.
+
+        # load help command in useful cog
+        GUILD = discord.Object(1010844235857149952)
+        help_command = starlight.convert_help_hybrid(MyHelpCommand(), guild=GUILD)  # load the help command.
+        bot.help_command = help_command
         help_command.cog = self  # set a category
 
     @commands.command()
@@ -34,6 +37,7 @@ class UsefulCog(commands.Cog, name="Useful Category"):
         tree.copy_global_to(guild=guild)
         cmds = await tree.sync(guild=guild)
         await ctx.send(f"Sync `{len(cmds)}` commands.")
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(UsefulCog(bot))
