@@ -207,3 +207,47 @@ This code output is the equivalent of Pagination View example.
     Unlike :meth:`SimplePaginationView.start`, `inline_pagination` is a
     blocking operation. Non-blocking operation can be achieve by wrapping
     :func:`asyncio.create_task` on the async iterator.
+
+
+General Utility
+~~~~~~~~~~~~~~~~
+General helper related to discord.py bots.
+
+search
+--------
+An extended version of :func:`~discord.utils.get()`. However, it is a filter that returns
+a sequence. This also supports for fuzzy matching as they are relatively
+common to be used within a discord bot.
+
+.. code-block:: python
+
+    from starlight import search, Contains
+    # Contains is alias of ContainsFilter class
+    items_with_my_value = search(items, my_attr=Contains('my_value'))
+
+    # Equivalent of
+    items_contains_value = [item for item in items if 'my_value' in item.my_attr]
+
+
+convert_help_hybrid
+---------------------
+Hybrid is a term to implement both text and slash command in
+discord.py. HelpCommand was explicitly only a text command. To
+change it to a hybrid, you can use :func:`convert_help_hybrid`.
+
+.. code-block:: python
+
+    import discord
+    import starlight
+    from discord.ext import commands
+
+    GUILD_ID = discord.Object(1010844235857149952)
+    my_help_command = commands.DefaultHelpCommand()
+    hybrid_help_command = starlight.convert_help_hybrid(my_help_command, guild=GUILD_ID)
+    bot = commands.Bot(..., help_command=hybrid_help_command)
+
+Once you sync your command. You can now use help command in slash command.
+
+.. note::
+    :func:`convert_help_hybrid` second argument is directly transfered to
+    the AppCommand params.

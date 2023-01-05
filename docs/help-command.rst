@@ -106,3 +106,13 @@ HelpPaginateBot
 .. autoclass:: HelpPaginateBot
     :members:
     :show-inheritance:
+
+
+Utility
+---------
+Help command utility that may help in implementation.
+
+convert_help_hybrid
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: convert_help_hybrid

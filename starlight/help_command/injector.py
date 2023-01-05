@@ -9,7 +9,7 @@ from discord.ext.commands.core import get_signature_parameters
 
 
 __all__ = (
-    'convert_hybrid',
+    'convert_help_hybrid',
 )
 
 class _InjectorCallback:
@@ -140,7 +140,7 @@ class _InjectHybridHelpCommand:
         self.help_command._command_impl._eject_cog()
 
 
-def convert_hybrid(help_command: commands.HelpCommand, **command_attrs: Any) -> commands.HelpCommand:
+def convert_help_hybrid(help_command: commands.HelpCommand, **command_attrs: Any) -> commands.HelpCommand:
     """Converts your help command into a hybrid help command.
 
     This is still experimental feature.
