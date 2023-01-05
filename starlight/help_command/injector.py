@@ -62,10 +62,12 @@ class _HybridHelpCommandImpl(commands.HybridCommand):
         self.params: Dict[str, Parameter] = get_signature_parameters(
             inject.__original_callback__.callback, globals(), skip_parameters=1  # type: ignore
         )
+        self._context_prefix: Optional[str] = None
 
     async def prepare(self, ctx: commands.Context) -> None:
         self._injected = injected = self._original.copy()
         injected.context = ctx
+        ctx.prefix = await ctx.bot.get_prefix(ctx.message)  # '/' appears when ctx.interaction is not None
         self._original.__original_callback__.bind = injected  # type: ignore
         self.params = get_signature_parameters(
             self._original.__original_callback__.callback, globals(), skip_parameters=1  # type: ignore
