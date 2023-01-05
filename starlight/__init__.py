@@ -1,5 +1,6 @@
 from .help_command.command import *
 from .help_command.view import *
+from .help_command.injector import *
 from .errors.view import *
 from .views.pagination import *
 from .views.utils import *
@@ -11,7 +12,7 @@ __title__ = 'starlight-dpy'
 __author__ = 'InterStella0'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-present InterStella0'
-__version__ = '0.0.1a22'
+__version__ = '0.0.1a23'
 
 
 class VersionInfo(NamedTuple):
@@ -22,4 +23,4 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=0, micro=1, level='a', serial=22)
+version_info: VersionInfo = VersionInfo(major=0, minor=0, micro=1, level='a', serial=23)
