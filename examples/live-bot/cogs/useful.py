@@ -11,9 +11,8 @@ class UsefulCog(commands.Cog, name="Useful Category"):
         self.emoji = "🇺"
 
         # load help command in useful cog
-        GUILD = discord.Object(1010844235857149952)
         help_command = MyHelpCommand(inline_fields=False, accent_color=bot.accent_color, error_color=bot.error_color)
-        help_hybrid_command = starlight.convert_help_hybrid(help_command, guild=GUILD)  # load the help command.
+        help_hybrid_command = starlight.convert_help_hybrid(help_command)  # load the help command.
         bot.help_command = help_hybrid_command
         help_hybrid_command.cog = self  # set a category
 

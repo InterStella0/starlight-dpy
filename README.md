@@ -223,13 +223,11 @@ discord.py. HelpCommand was explicitly only a text command. To
 change it to a hybrid, you can use `starlight.convert_help_hybrid`.
 
 ```python
-import discord
 import starlight
 from discord.ext import commands
 
-GUILD_ID = discord.Object(1010844235857149952)
 my_help_command = commands.DefaultHelpCommand()
-hybrid_help_command = starlight.convert_help_hybrid(my_help_command, guild=GUILD_ID)
+hybrid_help_command = starlight.convert_help_hybrid(my_help_command)
 bot = commands.Bot(..., help_command=hybrid_help_command)
 ```
 Once you sync your command. You can now use help command in slash command.
