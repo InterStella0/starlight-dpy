@@ -12,9 +12,10 @@ class UsefulCog(commands.Cog, name="Useful Category"):
 
         # load help command in useful cog
         GUILD = discord.Object(1010844235857149952)
-        help_command = starlight.convert_help_hybrid(MyHelpCommand(), guild=GUILD)  # load the help command.
-        bot.help_command = help_command
-        help_command.cog = self  # set a category
+        help_command = MyHelpCommand(inline_fields=False, accent_color=bot.accent_color, error_color=bot.error_color)
+        help_hybrid_command = starlight.convert_help_hybrid(help_command, guild=GUILD)  # load the help command.
+        bot.help_command = help_hybrid_command
+        help_hybrid_command.cog = self  # set a category
 
     @commands.command()
     async def say(self, ctx: commands.Context, *, say: commands.clean_content):
