@@ -23,7 +23,9 @@ class _InjectorCallback:
     async def invoke(self, *args, **kwargs):
         # don't put cog in command_callback
         # it used to be that i could do this in parse_arguments, but appcommand extracts __self__ directly from callback
-        cog, *args = args
+        if self.bind.cog is not None:
+            cog, *args = args
+
         return await self.callback.__func__(self.bind, *args, **kwargs)
 
 
@@ -62,7 +64,6 @@ class _HybridHelpCommandImpl(commands.HybridCommand):
         self.params: Dict[str, Parameter] = get_signature_parameters(
             inject.__original_callback__.callback, globals(), skip_parameters=1  # type: ignore
         )
-        self._context_prefix: Optional[str] = None
 
     async def prepare(self, ctx: commands.Context) -> None:
         self._injected = injected = self._original.copy()
@@ -126,10 +127,27 @@ class _InjectHybridHelpCommand:
     # Properly inject into the important part of the help command
     def __init__(self, help_command: commands.HelpCommand):
         self.help_command = help_command
+        self._copy = help_command.copy
+        help_command.copy = self.copy
+        self._destination_callback = help_command.get_destination
+        help_command.get_destination = self.get_destination
+        help_command._add_to_bot = self._add_to_bot
+        help_command._remove_from_bot = self._remove_from_bot
+
+    def copy(self):
+        copied = self._copy()
+        self.__class__(copied)
+        return copied
 
     def get_destination(self) -> discord.abc.Messageable:
-        # better to return context for interaction compatibility.
-        return self.help_command.context
+        # ensure interaction compatibility by returning Context if Channel is context.channel
+        # otherwise user need to implement it themselves.
+        destination = self._destination_callback()
+        ctx = self.help_command.context
+        if getattr(destination, "id", None) == ctx.channel.id:  # there is a chance destination does not have an id.
+            return ctx
+
+        return destination
 
     def _add_to_bot(self, bot: commands.bot.BotBase) -> None:
         command = _HybridHelpCommandImpl(self.help_command, **self.help_command.command_attrs)
@@ -145,7 +163,13 @@ class _InjectHybridHelpCommand:
 def convert_help_hybrid(help_command: commands.HelpCommand, **command_attrs: Any) -> commands.HelpCommand:
     """Converts your help command into a hybrid help command.
 
-    This is still experimental feature.
+    This is still an experimental feature.
+
+    .. note::
+        :meth:`~discord.ext.commands.HelpCommand.get_destination` is required to return a Context object for interaction
+        compatibility since slash command does not allow sending message to other channel as the interaction response.
+        As an alternative, send an initial response notifying the user on where the message went if you've decided to
+        send messages at other channels.
 
     Parameters
     -----------
@@ -160,14 +184,9 @@ def convert_help_hybrid(help_command: commands.HelpCommand, **command_attrs: Any
         :class:`~discord.ext.commands.HelpCommand`
             A copy of your help command with hybrid compatibility.
     """
-    injected = copy.copy(help_command)
+    injected = help_command.copy()
     injected.command_attrs.update(command_attrs)
     command_impl = _HybridHelpCommandImpl(injected, **injected.command_attrs)
     injected._command_impl = command_impl
-
-    injector = _InjectHybridHelpCommand(injected)
-    injected.get_destination = injector.get_destination
-    injected._add_to_bot = injector._add_to_bot
-    injected._remove_from_bot = injector._remove_from_bot
+    _InjectHybridHelpCommand(injected)
     return injected
-
