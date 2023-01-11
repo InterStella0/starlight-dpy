@@ -47,9 +47,6 @@ class MenuHelpCommand(commands.HelpCommand):
     error_color: Union[:class:`discord.Colour`, :class:`int`]
         Color of embed for error display. Defaults to :class:`discord.Color.red`.
 
-    pagination_buttons: Optional[Mapping[ :class:`str`, :class:`discord.ui.Button`]]
-        Mapping of pagination discord.ui.Button instances for each pagination iteraction.
-
     inline_fields: :class:`bool`
         Boolean that indicate if embed field on cog should be inline. Defaults to True.
 
@@ -416,7 +413,7 @@ class MenuHelpCommand(commands.HelpCommand):
         Union[:class:`discord.Embed`, Dict[:class:`str`, Any], :class:`str`]
             The value to be display on the Message.
         """
-        title="Help Command"
+        title = "Help Command"
         if view.max_pages > 1:
             title += f" ({view.current_page + 1}/{view.max_pages})"
 

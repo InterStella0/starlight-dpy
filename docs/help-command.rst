@@ -13,7 +13,6 @@ MenuHelpCommand
 .. autoclass:: MenuHelpCommand
     :members:
     :show-inheritance:
-    :noindex:
 
 
 PaginateHelpCommand
@@ -113,6 +112,6 @@ Utility
 Help command utility that may help in implementation.
 
 convert_help_hybrid
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: convert_help_hybrid
