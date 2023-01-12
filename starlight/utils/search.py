@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import difflib
 
 from operator import attrgetter
@@ -32,9 +33,11 @@ if TYPE_CHECKING:
 __all__ = (
     'SearchFilter',
     'ContainsFilter',
-    'FuzzyFilter',
     'Contains',
+    'FuzzyFilter',
     'Fuzzy',
+    'RegexFilter',
+    'Regex',
     'search',
 )
 
@@ -103,7 +106,7 @@ class ContainsFilter(SearchFilter[Any]):
 
         Returns
         --------
-        Any
+        :class:`bool`
             The value to sort this item by.
         """
         return self.query in value
@@ -172,7 +175,7 @@ class FuzzyFilter(SearchFilter[str]):
         ------------
         value: Any
             The value of the attribute from the item in iterable. It is cast to
-            :class:`str` before
+            :class:`str` before.
 
         Returns
         --------
@@ -183,6 +186,51 @@ class FuzzyFilter(SearchFilter[str]):
 
 
 Fuzzy = FuzzyFilter
+
+
+class RegexFilter(SearchFilter[str]):
+    """Basic filter that uses the provided regex pattern to search.
+
+    .. code-block:: python3
+
+        starlight.search(items, my_attr=RegexFilter(r'[0-9]{15,20}'))
+
+    Equivalent to
+
+    .. code-block:: python3
+
+        [item for item in items if re.search(item.myattr, r'[0-9]{15,20}')]
+
+    Parameters
+    ------------
+    query: :class:`str`
+        The regex pattern to filter by.
+    flags: Union[:class:`int`, :class:`re.RegexFlag`]
+        The flags to use for regex.
+    """
+    def __init__(self, query: str, /, flags: Union[int, re.RegexFlag]):  # re._flagsType isn't in 3.8 I think
+        super().__init__(query)
+        self.flags = flags
+
+    def filter(self, value: Any, /) -> bool:
+        """Filters the value from the iterable. The return value will be included
+        if it is truthy or excluded if it is falsy.
+
+        Parameters
+        ------------
+        value: Any
+            The value of the attribute from the item in iterable. It is cast to
+            :class:`str` before.
+
+        Returns
+        --------
+        :class:`bool`
+            The value to sort this item by.
+        """
+        return bool(re.search(self.query, str(value), self.flags))
+
+
+Regex = RegexFilter
 
 
 def _eq_predicate(query: Any) -> Callable[[Any], bool]:
