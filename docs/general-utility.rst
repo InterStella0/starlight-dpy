@@ -31,3 +31,8 @@ FuzzyFilter
     :members:
     :show-inheritance:
 
+RegexFilter
+~~~~~~~~~~~~
+.. autoclass:: RegexFilter
+    :members:
+    :show-inheritance:
