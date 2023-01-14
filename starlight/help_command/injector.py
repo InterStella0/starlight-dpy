@@ -548,14 +548,15 @@ class HelpHybridCommand(commands.HelpCommand):
             :class:`str`
                 The command signature in str form.
         """
+        signature = ' '
         if isinstance(command, commands.Command):
-            signature = command.signature
+            signature += command.signature
         elif isinstance(command, app_commands.Group):
             signature = ''
         else:
-            signature = starlight.get_app_signature(command)
+            signature += starlight.get_app_signature(command)
 
-        return f'{self.get_prefix(command)}{command.qualified_name} {signature}'
+        return f'{self.get_prefix(command)}{command.qualified_name}{signature}'
 
     def get_command_description(self, command: CommandTextApp, /, *, brief: bool = False
                                 ) -> Optional[str]:
