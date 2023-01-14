@@ -11,10 +11,10 @@ class UsefulCog(commands.Cog, name="Useful Category"):
         self.emoji = "🇺"
 
         # load help command in useful cog
-        help_command = MyHelpCommand(inline_fields=False, accent_color=bot.accent_color, error_color=bot.error_color)
-        help_hybrid_command = starlight.convert_help_hybrid(help_command)  # load the help command.
-        bot.help_command = help_hybrid_command
-        help_hybrid_command.cog = self  # set a category
+        # with_app_command is to make help command a hybridcommand
+        help_command = MyHelpCommand(with_app_command=True, inline_fields=False, accent_color=bot.accent_color, error_color=bot.error_color)
+        bot.help_command = help_command # load the help command.
+        help_command.cog = self  # set a category
 
     @commands.command()
     async def say(self, ctx: commands.Context, *, say: commands.clean_content):

@@ -22,15 +22,6 @@ class MyHelpCommand(starlight.MenuHelpCommand):
         }
         self.cls_home_button = MyHomeButton
 
-    async def command_callback(self, ctx, /, *, command: Optional[str] = None) -> None:
-        if command:  # implement searching for '??help <command>'
-            cmd_or_cog = ctx.bot.get_command(command) or ctx.bot.get_cog(command)
-            if not cmd_or_cog:
-                await self.command_search(command)
-                return
-
-        await super().command_callback(ctx, command=command)
-
     async def command_search(self, command: str):
         ctx = self.context
         found_cmds = starlight.search(ctx.bot.commands, sort=True, qualified_name=starlight.Fuzzy(command))
