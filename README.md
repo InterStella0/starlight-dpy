@@ -217,9 +217,13 @@ items_with_my_value = search(items, my_attr=Contains('my_value'))
 items_contains_value = [item for item in items if 'my_value' in item.my_attr]
 ```
 
-## Help Hybrid Command
+# Help Hybrid Command
 Hybrid is a term to implement both text and slash command in
-discord.py. HelpCommand was explicitly only a text command. To
+discord.py. 
+
+## Injection
+HelpCommand was explicitly only a text command. 
+For existing HelpCommand implementation, you can
 change it to a hybrid, you can use `starlight.convert_help_hybrid`.
 
 ```python
@@ -234,6 +238,33 @@ Once you sync your command. You can now use help command in slash command.
 
 **Note:** `convert_help_hybrid` second argument is directly transfered to
 the AppCommand parameters.
+
+
+## Inherits
+For new implementation of helpcommand, you can directly inherits
+`starlight.HelpHybridCommand`. This will have several helpful feature
+to integrate with app command. `with_app_command` should also be
+set to True
+
+```python
+import starlight
+from discord.ext import commands
+
+class MyHelp(starlight.HelpHybridCommand):
+    async def send_bot_help(self, mapping, /) -> None:
+        no_command = len([c for cog in mapping.values() for c in cog])
+        response = f'I have `{no_command:,}` commands!'
+        await self.get_destination().send(response)
+
+bot = commands.Bot(..., help_command=MyHelp(with_app_command=True))
+```
+Once you sync your command. You can now use help command in slash command.
+
+**Output**
+
+![output.png](docs/images/hybridhelp.png)
+
+
 
 # References
 - [Documentation](https://starlight-dpy.readthedocs.io/en/latest/)

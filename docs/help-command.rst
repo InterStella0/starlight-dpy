@@ -7,6 +7,13 @@ types of HelpCommand it has to offer.
 
 Types of Help Command
 -----------------------
+HelpHybridCommand
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HelpHybridCommand
+    :members:
+    :show-inheritance:
+
 MenuHelpCommand
 ~~~~~~~~~~~~~~~~~
 

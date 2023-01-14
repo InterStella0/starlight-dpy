@@ -127,7 +127,7 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
         self.cog = None
 
 
-class _InjectHybridHelpCommand:
+class _InjectHelpHybridCommand:
     # Properly inject into the important part of the help command
     def __init__(self, help_command: commands.HelpCommand):
         self.help_command = help_command
@@ -199,7 +199,7 @@ def convert_help_hybrid(help_command: commands.HelpCommand, **command_attrs: Any
     injected.command_attrs.update(command_attrs)
     command_impl = _HelpHybridCommandImpl(injected, **injected.command_attrs)
     injected._command_impl = command_impl
-    _InjectHybridHelpCommand(injected)
+    _InjectHelpHybridCommand(injected)
     return injected
 
 
@@ -208,20 +208,20 @@ class HelpHybridCommand(commands.HelpCommand):
     to make a help hybrid command.
 
     Generally, this would include command, hybrid command, and app command compared to the :class:`~discord.ext.commands.HelpCommand`
-    class.
+    class. There is helpful methods for easier integration between app command and text command.
 
     If you have no control of the inheritance, you should use :func:`convert_help_hybrid` instead.
 
     Parameters
     -----------
-        **options: Any
-            Passed keyword arguments are sent to :class:`commands.HelpCommand`.
         with_app_command: :class:`bool`
             Whether to include app command implementation in your tree. Defaults to False. A shortcut to
             `command_attrs=dict(with_app_command)`.
         include_apps: :class:`bool`
             Whether to include app commands. Only applicable if help command is invoked with app command.
             Defaults to True.
+        **options: Any
+            Passed keyword arguments are sent to :class:`~discord.ext.commands.HelpCommand`.
     """
     def __init__(self, *, with_app_command: bool = False, **options: Any):
         super().__init__(**options)
@@ -252,8 +252,7 @@ class HelpHybridCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        mapping: Mapping[Optional[:class:`Cog`], List[Union[:class:`~discord.ext.commands.Command`,
-        :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]]
+        mapping: Mapping[Optional[:class:`Cog`], List[Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]]
             A mapping of cogs to commands that have been requested by the user for help.
             The key of the mapping is the :class:`~.commands.Cog` that the command belongs to, or
             ``None`` if there isn't one, and the value is a list of commands that belongs to that cog.
@@ -314,8 +313,8 @@ class HelpHybridCommand(commands.HelpCommand):
             You can access the invocation context with :attr:`HelpCommand.context`.
 
             To get the commands that belong to this group without aliases see
-            :attr:`~discord.ext.commands.Group.commands` or `~discord.app_commands.Group.commands` for group app commands.
-            The commands returned not filtered. To do the
+            :attr:`~discord.ext.commands.Group.commands` or :attr:`~discord.app_commands.Group.commands`
+            for group app commands. The commands returned not filtered. To do the
             filtering you will have to call :meth:`filter_commands` yourself.
 
         .. versionchanged:: 2.0
@@ -416,8 +415,7 @@ class HelpHybridCommand(commands.HelpCommand):
 
         Parameters
         -----------
-            command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`,
-            :class:`~discord.app_commands.Group`]
+            command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]
                 The command for prefix retrieval.
 
         Returns
@@ -435,8 +433,7 @@ class HelpHybridCommand(commands.HelpCommand):
 
         Parameters
         -----------
-            command: Union[:class:`~discord.ext.commands.Command],
-            :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]
+            command: Union[:class:`~discord.ext.commands.Command], :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]
                 The command for prefix retrieval.
 
         Returns
@@ -469,16 +466,13 @@ class HelpHybridCommand(commands.HelpCommand):
 
         Parameters
         ------------
-        commands: Iterable[Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`,
-            :class:`~discord.app_commands.Group`]]
+        commands: Iterable[Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]]
             An iterable of commands that are getting filtered.
         sort: :class:`bool`
             Whether to sort the result.
-        key: Optional[Callable[[Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`,
-            :class:`~discord.app_commands.Group`]], Any]]
+        key: Optional[Callable[[Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]], Any]]
             An optional key function to pass to :func:`py:sorted` that
-            takes a Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`,
-            :class:`~discord.app_commands.Group`] as its sole parameter. If ``sort`` is passed as ``True`` then this
+            takes a Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`] as its sole parameter. If ``sort`` is passed as ``True`` then this
             will default as the command name.
 
         Returns
@@ -546,8 +540,7 @@ class HelpHybridCommand(commands.HelpCommand):
 
         Parameters
         ------------
-            command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`,
-            :class:`~discord.app_commands.Group`]
+            command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]
                 Command to get the signature from.
 
         Returns
@@ -570,8 +563,7 @@ class HelpHybridCommand(commands.HelpCommand):
 
         Parameters
         ------------
-            command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`,
-            :class:`~discord.app_commands.Group`]
+            command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]
                 Command to get the documentation from.
 
             brief: :class:`bool`

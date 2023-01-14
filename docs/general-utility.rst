@@ -36,3 +36,8 @@ RegexFilter
 .. autoclass:: RegexFilter
     :members:
     :show-inheritance:
+
+
+get_app_signature
+------------------
+.. autofunction:: get_app_signature
