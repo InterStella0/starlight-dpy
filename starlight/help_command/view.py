@@ -6,6 +6,7 @@ from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type, Mapping, Generic, TypeVar, Tuple
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from ..views.pagination import SimplePaginationView, ViewAuthor
@@ -13,7 +14,7 @@ from ..views.pagination import SimplePaginationView, ViewAuthor
 if TYPE_CHECKING:
     from .command import MenuHelpCommand, PaginateHelpCommand
 
-    _Command = commands.Command[Any, ..., Any]
+    _Command = commands.Command[Any, ..., Any], app_commands.Command
     _MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
     _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
@@ -308,10 +309,10 @@ class HelpMenuCommand(ViewAuthor):
         The command that will be display.
 
     """
-    def __init__(self, help_command: MenuHelpCommand, command: commands.Command, **kwargs):
+    def __init__(self, help_command: MenuHelpCommand, command: _Command, **kwargs):
         super().__init__(**kwargs)
         self.help_command: MenuHelpCommand = help_command
-        self.command = command
+        self.command: _Command = command
 
     async def start(self, context: commands.Context, *args: Any, **kwargs: Any) -> None:
         help_command = self.help_command
@@ -333,10 +334,10 @@ class HelpMenuGroup(ViewAuthor):
         The group that will be display.
 
     """
-    def __init__(self, help_command: MenuHelpCommand, group: commands.Group[Any, ..., Any], **kwargs):
+    def __init__(self, help_command: MenuHelpCommand, group: Union[commands.Group[Any, ..., Any], app_commands.Group], **kwargs):
         super().__init__(**kwargs)
         self.help_command: MenuHelpCommand = help_command
-        self.group = group
+        self.group: Union[commands.Group[Any, ..., Any], app_commands.Group] = group
 
     async def start(self, context: commands.Context, *args: Any, **kwargs: Any) -> None:
         help_command = self.help_command

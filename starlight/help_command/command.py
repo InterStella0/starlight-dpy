@@ -4,12 +4,14 @@ import itertools
 from typing import Optional, List, Any, Union, Dict, TypeVar, Mapping, Type, TYPE_CHECKING
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import HybridCommand
 
 from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton, \
     HelpPaginateProvider, HelpPaginateBot, HelpMenuBot
 from ..views.pagination import ViewAuthor
+from .injector import HelpHybridCommand
 
 __all__ = (
     "MenuHelpCommand",
@@ -18,12 +20,12 @@ __all__ = (
 
 T = TypeVar('T')
 if TYPE_CHECKING:
-    _Command = commands.Command[Any, ..., Any]
+    _Command = Union[commands.Command[Any, ..., Any], app_commands.Command]
     _MappingBotCommands = Dict[Optional[commands.Cog], List[_Command]]
     _OptionalFormatReturns = Union[discord.Embed, Dict[str, Any], str]
 
 
-class MenuHelpCommand(commands.HelpCommand):
+class MenuHelpCommand(HelpHybridCommand):
     """HelpCommand implementation for MenuHelpCommand which utilizes :class:`discord.ui.Select`
     for :class:`~discord.ext.commands.Cog` selection and :class:`discord.ui.Button` for command pagination.
 
@@ -99,21 +101,6 @@ class MenuHelpCommand(commands.HelpCommand):
     def pagination_buttons(self, value: Mapping[str, discord.ui.Button]):
         self._pagination_buttons = value
 
-    def get_command_signature(self, command: _Command, /) -> str:
-        """Retrieves the Command signature during Command pagination.
-
-        Parameters
-        ------------
-        command: :class:`~discord.ext.commands.Command`
-            The command to get the signature of.
-
-        Returns
-        --------
-        :class:`str`
-            The signature for the command.
-        """
-        return f'{self.context.clean_prefix}{command.qualified_name} {command.signature}'
-
     def format_command_brief(self, command: _Command) -> str:
         """Retrieves the Command signature with a brief description during Command pagination.
 
@@ -126,7 +113,8 @@ class MenuHelpCommand(commands.HelpCommand):
         :class:`str`
             The signature for the command.
         """
-        return f"`{self.get_command_signature(command)}`\n{command.short_doc or self.no_documentation}"
+        brief = self.get_command_description(command, brief=True) or self.no_documentation
+        return f"`{self.get_command_signature(command)}`\n{brief}"
 
     async def format_group_detail(self, view: HelpMenuGroup) -> _OptionalFormatReturns:
         """Interface to display a detail description of a Group command.
@@ -143,9 +131,9 @@ class MenuHelpCommand(commands.HelpCommand):
         """
         group = view.group
         subcommands = "\n".join([self.format_command_brief(cmd) for cmd in group.commands])
-        group_description = group.help or self.no_documentation
+        group_description = self.get_command_description(group) or self.no_documentation
 
-        if group.aliases:
+        if isinstance(group, commands.Group) and group.aliases:
             group_description += f"\n\n**Aliases**\n{', '.join(group.aliases)}"
 
         if isinstance(group, commands.HybridGroup):
@@ -171,8 +159,8 @@ class MenuHelpCommand(commands.HelpCommand):
             The value to be display on the Message.
         """
         cmd = view.command
-        desc = cmd.help
-        if cmd.aliases:
+        desc = self.get_command_description(cmd) or self.no_documentation
+        if isinstance(cmd, commands.Command) and cmd.aliases:
             desc += f"\n\n**Aliases**\n{', '.join(cmd.aliases)}"
 
         if isinstance(cmd, HybridCommand):

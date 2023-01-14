@@ -4,6 +4,7 @@ from .help_command.injector import *
 from .errors.view import *
 from .views.pagination import *
 from .views.utils import *
+from .utils.general import *
 from .utils.search import *
 
 from typing import NamedTuple, Literal
