@@ -597,7 +597,8 @@ class HelpHybridCommand(commands.HelpCommand):
         mapping = {}
 
         for cog in bot.cogs.values():
-            mapping.setdefault(cog, []).extend(cog.get_app_commands())
+            cmds = cog.get_app_commands() if not isinstance(cog, commands.GroupCog) else cog.app_command.commands
+            mapping.setdefault(cog, []).extend(cmds)
 
         def get_cmds(with_guild=None):
             return [c for c in bot.tree.get_commands(guild=with_guild)
