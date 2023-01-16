@@ -416,12 +416,12 @@ class HelpHybridCommand(commands.HelpCommand):
         Parameters
         -----------
             command: Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]
-                The command for prefix retrieval.
+                The command for cog retrieval
 
         Returns
         ---------
-            :class:`str`
-                Return the proper prefix. App command should be strictly `/`.
+            Optional[:class:`~discord.ext.commands.Cog`]
+                Return associate cog instance. `None` if it has no associate cog.
         """
 
         cog_or_group = command.cog if isinstance(command, commands.Command) else getattr(command, 'binding', None)
