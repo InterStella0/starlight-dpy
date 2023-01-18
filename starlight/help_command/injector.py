@@ -45,7 +45,7 @@ def _method_partial(inject):
         inject.__original_callback__ = _InjectorCallback(inject.command_callback, inject)
 
     invoker = inject.__original_callback__
-    original_callback = inject.__original_callback__.callback
+    original_callback = invoker.callback
 
     async def invoke(*args, **kwargs):  # allows __signature__ modification
         return await invoker.invoke(*args, **kwargs)
@@ -154,8 +154,9 @@ class _InjectHelpHybridCommand:
         return destination
 
     def _add_to_bot(self, bot: commands.bot.BotBase) -> None:
-        command = _HelpHybridCommandImpl(self.help_command, **self.help_command.command_attrs)
-        self.help_command._command_impl = command
+        help_command = self.help_command
+        command = _HelpHybridCommandImpl(help_command, **help_command.command_attrs)
+        help_command._command_impl = command
         bot.add_command(command)
 
     def _remove_from_bot(self, bot: commands.bot.BotBase) -> None:
