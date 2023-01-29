@@ -328,7 +328,7 @@ class HelpHybridCommand(commands.HelpCommand):
             The group that was requested for help.
         """
 
-    async def command_callback(self, ctx: commands.Context, /, *, command_or_category: Optional[str] = None) -> None:
+    async def command_callback(self, ctx: commands.Context, /, *, command: Optional[str] = None) -> None:
         """|coro|
 
         The actual implementation of the help hybrid command.
@@ -348,7 +348,6 @@ class HelpHybridCommand(commands.HelpCommand):
         - :meth:`prepare_help_command`
 
         """
-        command = command_or_category
         await self.prepare_help_command(ctx, command)
 
         bot = ctx.bot
