@@ -269,3 +269,7 @@ Once you sync your command. You can now use help command in slash command.
 # References
 - [Documentation](https://starlight-dpy.readthedocs.io/en/latest/)
 - [Discord.py Docs](https://discordpy.readthedocs.io/en/stable)
+
+
+# Contributors
+[![contributors](https://contrib.rocks/image?repo=InterStella0/starlight-dpy)](https://github.com/InterStella0/starlight-dpy/graphs/contributors)
