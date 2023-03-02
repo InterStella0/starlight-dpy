@@ -4,7 +4,54 @@ import discord
 from discord import app_commands
 __all__ = (
     'get_app_signature',
+    'recursive_unpack',
+    'flatten'
 )
+
+
+T = TypeVar('T')
+
+
+def recursive_unpack(iterable: List[Union[List[T], T]], /, *, allowed_recursion=(list, tuple, set, dict)) -> Iterator[T]:
+    """Used to unpack an iterable from any level of data structure.
+    This is similar to :meth:`itertools.chain.from_iterable` but recursive with any level of depth.
+
+    Parameters
+    -----------
+        iterable: List[Union[List[T], T]]
+            The multi level list that will be unpacked.
+        allowed_recursion: Tuple[Type]
+            Data structure that is allowed to be recursived. Defaults to Tuple[list, tuple, set, dict].
+
+    Yields
+    -------
+    T
+        The element that was uncover from the data structure.
+    """
+    for e in iterable:
+        if isinstance(e, allowed_recursion):
+            yield from recursive_unpack(e, allowed_recursion=allowed_recursion)
+        else:
+            yield e
+
+
+def flatten(iterable: List[Union[List[T], T]], /, *, allowed_recursion=(list, tuple, set, dict)) -> List[T]:
+    """Used to unpack an iterable from any level of list of list into a single list.
+    This is similar to :meth:`itertools.chain.from_iterable` but recursive with any level of depth.
+
+    Parameters
+    -----------
+        iterable: List[Union[List[T], T]]
+            The multi level list that will be unpacked.
+        allowed_recursion: Tuple[Type]
+            Data structure that is allowed to be recursived. Defaults to Tuple[list, tuple, set, dict].
+
+    Returns
+    -------
+    List[T]
+        The list that was uncover from the data stucture.
+    """
+    return list(recursive_unpack(iterable, allowed_recursion=allowed_recursion))
 
 
 def get_app_signature(command: app_commands.Command) -> str:
