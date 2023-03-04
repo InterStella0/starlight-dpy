@@ -13,8 +13,12 @@ Feel free to open an issue if you found any bugs!🌷
 pip install git+https://github.com/InterStella0/starlight-dpy
 ```
 
+# Help Command
+
 ## Menu Help Command
-Easily paginate your help command with little effort.
+<details>
+<summary>Easily paginate your help command with little effort.</summary>
+
 ```python
 import starlight
 import discord
@@ -86,10 +90,12 @@ bot = commands.Bot(
 **Output**
 
 ![output.png](docs/images/customize_menu_help.png)
+</details>
 
 ## Paginate Help Command
-Similar to MenuHelpCommand, with a difference where it uses
-purely buttons for navigation.
+<details>
+<summary>Uses buttons for navigation.</summary>
+
 ```python
 import starlight
 import discord
@@ -106,9 +112,64 @@ bot = commands.Bot(
 **Output**
 
 ![output.png](docs/images/default_paginate_help.png)
+</details>
 
+## Help Hybrid Command
+<details>
+<summary>Hybrid is a term to implement both text and slash command in
+discord.py. </summary>
+
+
+### Injection
+HelpCommand was explicitly only a text command. 
+For existing HelpCommand implementation, you can
+change it to a hybrid, you can use `starlight.convert_help_hybrid`.
+
+```python
+import starlight
+from discord.ext import commands
+
+my_help_command = commands.DefaultHelpCommand()
+hybrid_help_command = starlight.convert_help_hybrid(my_help_command)
+bot = commands.Bot(..., help_command=hybrid_help_command)
+```
+Once you sync your command. You can now use help command in slash command.
+
+**Note:** `convert_help_hybrid` second argument is directly transfered to
+the AppCommand parameters.
+
+
+### Inherits
+For new implementation of helpcommand, you can directly inherits
+`starlight.HelpHybridCommand`. This will have several helpful feature
+to integrate with app command. `with_app_command` should also be
+set to True
+
+```python
+import starlight
+from discord.ext import commands
+
+class MyHelp(starlight.HelpHybridCommand):
+    async def send_bot_help(self, mapping, /) -> None:
+        no_command = len([c for cog in mapping.values() for c in cog])
+        response = f'I have `{no_command:,}` commands!'
+        await self.get_destination().send(response)
+
+bot = commands.Bot(..., help_command=MyHelp(with_app_command=True))
+```
+Once you sync your command. You can now use help command in slash command.
+
+**Output**
+
+![output.png](docs/images/hybridhelp.png)
+
+</details>
+
+# Views
 
 ## Inline View
+<details>
+<summary>A shortcut for view handling.</summary>
 Create inline view for distinct behaviours with `starlight.inline_view`.
 
 ```python
@@ -142,10 +203,11 @@ print("My Result:", result)
 **Note:**
 - Interaction callbacks are sequential due to async iterator.
 - Always go for View subclasses whenever you can.
-
+</details>
 
 ## Pagination View
-A simple pagination interface.
+<details>
+<summary>A simple pagination interface.</summary>
 
 This was designed to not rely on `discord.ext.menus` due to lack of support
 for `Interaction`. Majority of code that was present in `discord.ext.menus`
@@ -177,9 +239,13 @@ async def my_command(ctx):
 
 ![output.png](docs/images/pagination_view.png)
 
+</details>
+
 ## Inline Pagination
-Paginating can have distinct formats which could cause boilerplate code. Which leads to the 
-creation of Inline Pagination. It works
+<details>
+<summary>Paginating can have distinct formats which could cause boilerplate code. Which leads to the 
+creation of Inline Pagination.</summary>
+It works
 similarly with Inline View. With a slight change, 
 `InlinePaginationItem` are yielded for you to respond it to have an
 effect to the message through `.format()` method.
@@ -201,10 +267,13 @@ async def my_command(ctx):
 ```
 
 The output of this code is the equivalent of the Pagination View example.
+</details>
 
 # General Utility
 ## Search
-An extended version of `discord.utils.get()`. However, it is a filter that returns
+<details>
+<summary>An extended version of discord.utils.get().</summary>
+However, it is a filter that returns
 a sequence. This also supports for fuzzy matching as they are relatively
 common to be used within a discord bot.
 
@@ -217,52 +286,7 @@ items_with_my_value = search(items, my_attr=Contains('my_value'))
 items_contains_value = [item for item in items if 'my_value' in item.my_attr]
 ```
 
-# Help Hybrid Command
-Hybrid is a term to implement both text and slash command in
-discord.py. 
-
-## Injection
-HelpCommand was explicitly only a text command. 
-For existing HelpCommand implementation, you can
-change it to a hybrid, you can use `starlight.convert_help_hybrid`.
-
-```python
-import starlight
-from discord.ext import commands
-
-my_help_command = commands.DefaultHelpCommand()
-hybrid_help_command = starlight.convert_help_hybrid(my_help_command)
-bot = commands.Bot(..., help_command=hybrid_help_command)
-```
-Once you sync your command. You can now use help command in slash command.
-
-**Note:** `convert_help_hybrid` second argument is directly transfered to
-the AppCommand parameters.
-
-
-## Inherits
-For new implementation of helpcommand, you can directly inherits
-`starlight.HelpHybridCommand`. This will have several helpful feature
-to integrate with app command. `with_app_command` should also be
-set to True
-
-```python
-import starlight
-from discord.ext import commands
-
-class MyHelp(starlight.HelpHybridCommand):
-    async def send_bot_help(self, mapping, /) -> None:
-        no_command = len([c for cog in mapping.values() for c in cog])
-        response = f'I have `{no_command:,}` commands!'
-        await self.get_destination().send(response)
-
-bot = commands.Bot(..., help_command=MyHelp(with_app_command=True))
-```
-Once you sync your command. You can now use help command in slash command.
-
-**Output**
-
-![output.png](docs/images/hybridhelp.png)
+</details>
 
 
 
