@@ -9,9 +9,7 @@ with open(r'starlight/__init__.py') as r:
 
 packages = [
     "starlight",
-    "starlight.help_command",
-    "starlight.views",
-    "starlight.errors",
+    "starlight.star_commands",
     "starlight.utils",
 ]
 

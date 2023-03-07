@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import itertools
 import textwrap
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Type, Mapping, Generic, TypeVar, Tuple
+from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING, Mapping, Generic, TypeVar
 
 import discord
 from discord import app_commands

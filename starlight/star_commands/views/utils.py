@@ -7,7 +7,7 @@ from discord.ext import commands
 from discord.ui.view import _ViewCallback
 
 if TYPE_CHECKING:
-    from starlight.views.pagination import SimplePaginationView
+    from .pagination import SimplePaginationView
 
 __all__ = (
     "inline_view",

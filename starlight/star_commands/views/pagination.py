@@ -5,7 +5,7 @@ from typing import List, Any, TypeVar, Union, Dict, Optional, Generic
 import discord
 from discord.ext import commands
 
-from ..errors.view import NotViewOwner
+from ..errors import NotViewOwner
 
 
 __all__ = (
