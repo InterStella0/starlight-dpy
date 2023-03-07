@@ -1,9 +1,9 @@
-from .help_command.command import *
-from .help_command.view import *
-from .help_command.injector import *
-from .errors.view import *
-from .views.pagination import *
-from .views.utils import *
+from .star_commands.help_command.command import *
+from .star_commands.help_command.view import *
+from .star_commands.help_command.injector import *
+from .star_commands.errors import *
+from .star_commands.views.pagination import *
+from .star_commands.views.utils import *
 from .utils.general import *
 from .utils.search import *
 
@@ -24,4 +24,4 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=0, micro=1, level='a', serial=32)
+version_info: VersionInfo = VersionInfo(major=0, minor=0, micro=1, level='a', serial=33)

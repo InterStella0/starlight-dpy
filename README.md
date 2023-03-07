@@ -288,7 +288,27 @@ items_contains_value = [item for item in items if 'my_value' in item.my_attr]
 
 </details>
 
+# Converters
+## Separator
+<details>
+<summary>Greedy behaviour with a separator instead of spaces as 
+delimiter.</summary>
+By default, this is set to ',' as the delimiter. It can be configured by
+passing 'separator' keyword argument.
 
+```python
+from starlight import star_commands
+
+@bot.command(cls=star_commands.ExtendedCommand) # this is required for separators
+async def my_command(ctx: commands.Context, colours: star_commands.Separator[discord.Color], *, the_rest: str):
+    await ctx.send(f"{colours} | {the_rest}")
+```
+
+**Output**
+
+![output.png](docs/images/separators_example.png)
+
+</details>
 
 # References
 - [Documentation](https://starlight-dpy.readthedocs.io/en/latest/)
