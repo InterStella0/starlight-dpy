@@ -13,7 +13,7 @@ __title__ = 'starlight-dpy'
 __author__ = 'InterStella0'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-present InterStella0'
-__version__ = '0.0.1a32'
+__version__ = '0.0.1a33'
 
 
 class VersionInfo(NamedTuple):
