@@ -41,3 +41,14 @@ RegexFilter
 get_app_signature
 ------------------
 .. autofunction:: get_app_signature
+
+
+Iterables
+---------
+recursive_unpack
+~~~~~~~~~~~~~~~~
+.. autofunction:: recursive_unpack
+
+flatten
+~~~~~~~
+.. autofunction:: flatten

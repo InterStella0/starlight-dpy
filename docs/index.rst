@@ -12,4 +12,6 @@ Welcome to starlight-dpy's documentation!
    examples
    help-command
    views
+   converters
    general-utility
+   errors

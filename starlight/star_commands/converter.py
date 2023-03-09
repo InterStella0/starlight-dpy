@@ -11,6 +11,7 @@ from discord.ext import commands
 
 __all__ = (
     'Separator',
+    'SeparatorTransform',
 )
 
 from .errors import ExpectedEndOfSeparatorArgument, BadUnionTransformerArgument
@@ -100,8 +101,15 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
     ``[1, 2, 3, 4]`` and ``reason`` with ``hello``\.
 
     .. note::
-        This converter requires the usage of `star_commands.ExtendedCommand` to function properly due to how greedy
-        works in `~discord.ext.commands.Command`.
+        This converter requires the usage of :class:`~starlight.star_commands.ExtendedCommand` to function properly due
+        to how greedy works in :class:`~discord.ext.commands.Command`.
+
+    Parameters
+    ------------
+        converter: :class:`Any`
+            A class to be used as converter.
+        delimiter: :class:`str`
+            Must be a string literal with only a single character as your delimiter. Space is not a valid delimiter.
     """
 
     __slots__ = ('converter', 'delimiter')
@@ -109,6 +117,7 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
     def __init__(self, *, converter: T, delimiter: str = ',') -> None:
         super().__init__()
         self.converter: T = converter
+        delimiter = delimiter.strip()
         if len(delimiter) > 1:
             raise RuntimeError(f"Delimiter needs to be a single character. Not {len(delimiter)}.")
 
@@ -235,6 +244,21 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
 
 
 class SeparatorTransform(Separator):
+    r"""This is :class:`Separator` for application command equivalent of ``Transform[List[str], Separator[str]]``.
+
+    For example, in the following code:
+
+    .. code-block:: python3
+
+        from discord import app_commands
+        from starlight import star_commands
+        @app_commands.command()
+        async def test(ctx, numbers: star_commands.SeparatorTransform[int], reason: str):
+            await ctx.send("numbers: {}, reason: {}".format(numbers, reason))
+
+    An invocation of ``/test numbers: 1, 2, 3, 4, 5, 6 reason: hello`` would pass ``numbers`` with
+    ``[1, 2, 3, 4, 5, 6]`` and ``reason`` with ``hello``\.
+    """
     def __class_getitem__(cls, params: Union[Tuple[T, str], T]) -> SeparatorTransform:
         instance = super().__class_getitem__(params)
         return app_commands.Transform[instance.converter, instance]

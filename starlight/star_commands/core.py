@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "ExtendedCommand",
+    "ExtendedHybridCommand",
     "command",
     "hybrid_command"
 )
@@ -83,15 +84,23 @@ class ExtendedCommandMixin(commands.Command):
 
 
 class ExtendedCommand(ExtendedCommandMixin):
-    pass
+    """Extra features added for special starlight-dpy converters to work properly.
+
+    This is not meant to be instantiated directly. Use :func:`~starlight.star_commands.command` instead.
+    """
 
 
 class ExtendedHybridCommand(ExtendedCommandMixin, commands.HybridCommand):
-    pass
+    """Extra features added for special starlight-dpy converters to work properly.
+
+    This is not meant to be instantiated directly. Use :func:`~starlight.star_commands.hybrid_command` instead.
+    """
 
 
 def command(*args, bot: Union[commands.Bot, MISSING] = MISSING, **kwargs) -> Any:
-    """Extended command decorator to create a new command.
+    """Extended command decorator to create a new prefix command.
+
+    When you have bot reference, use the bot kwarg.
 
     .. code-block:: python3
 
@@ -100,6 +109,8 @@ def command(*args, bot: Union[commands.Bot, MISSING] = MISSING, **kwargs) -> Any
         @star_commands.command(bot=bot)
         async def my_command(ctx: commands.Context):
             await ctx.send('hello')
+
+    Else you can do it normally.
 
     .. code-block:: python3
 
@@ -121,7 +132,9 @@ def command(*args, bot: Union[commands.Bot, MISSING] = MISSING, **kwargs) -> Any
 
 
 def hybrid_command(*args, bot: Union[commands.Bot, MISSING] = MISSING, **kwargs):
-    """Extended hybrid command decorator to create a new command.
+    """Extended hybrid command decorator to create a hybrid command.
+
+    When you have bot reference, use the bot kwarg.
 
     .. code-block:: python3
 
@@ -130,6 +143,8 @@ def hybrid_command(*args, bot: Union[commands.Bot, MISSING] = MISSING, **kwargs)
         @star_commands.hybrid_command(bot=bot)
         async def my_command(ctx: commands.Context):
             await ctx.send('hello')
+
+    Else, you can do it normally
 
     .. code-block:: python3
 
