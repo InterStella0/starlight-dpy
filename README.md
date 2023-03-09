@@ -312,9 +312,9 @@ passing 'separator' keyword argument.
 ```python
 from starlight import star_commands
 
-@bot.command(cls=star_commands.ExtendedCommand) # this is required for separators
-async def my_command(ctx: commands.Context, colours: star_commands.Separator[discord.Color], *, the_rest: str):
-    await ctx.send(f"{colours} | {the_rest}")
+@star_commands.command(bot=bot) # this is required for separators
+async def my_command(ctx, colours: star_commands.Separator[discord.Color], *, the_rest: str):
+    await ctx.send(f"{colours} | '{the_rest}'")
 ```
 
 **Output**
