@@ -288,6 +288,19 @@ items_contains_value = [item for item in items if 'my_value' in item.my_attr]
 
 </details>
 
+## Flatten
+<details>
+<summary>Flatten nested iterables.</summary>
+
+```python
+from starlight import flatten
+
+arr = [[1, 2], [3, [4, 5], 6], 7, [8]]
+arr_flatten = flatten(arr)
+print(arr_flatten)  # -> [1, 2, 3, 4, 5, 6, 7, 8]
+```
+</details>
+
 # Converters
 ## Separator
 <details>
