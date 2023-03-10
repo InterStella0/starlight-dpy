@@ -6,6 +6,7 @@ import inspect
 from typing import Union, Tuple, TypeVar, List, Any, TYPE_CHECKING, Dict
 
 import discord
+import typing
 from discord import app_commands, AppCommandOptionType
 from discord.abc import GuildChannel
 from discord.app_commands import Transformer, AppCommandThread, AppCommandChannel
@@ -328,7 +329,7 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
 
 
 class SeparatorTransform(Separator):
-    r"""This is :class:`Separator` for application command equivalent of ``Transform[List[str], Separator[str]]``.
+    r"""This is :class:`Separator` for application command equivalent of ``Transform[List[T], Separator[T]]``.
 
     For example, in the following code:
 
@@ -343,6 +344,9 @@ class SeparatorTransform(Separator):
     An invocation of ``/test numbers: 1, 2, 3, 4, 5, 6 reason: hello`` would pass ``numbers`` with
     ``[1, 2, 3, 4, 5, 6]`` and ``reason`` with ``hello``\.
     """
-    def __class_getitem__(cls, params: Union[Tuple[T, str], T]) -> SeparatorTransform:
+    def __class_getitem__(cls, params: Union[Tuple[T, str], T]
+                          ) -> Union[typing.Annotated[List[T], Separator[T]], SeparatorTransform[T]]:
         instance = super().__class_getitem__(params)
+        if TYPE_CHECKING:
+            return typing.Annotated[List[instance.converter], instance]
         return app_commands.Transform[List[instance.converter], instance]
