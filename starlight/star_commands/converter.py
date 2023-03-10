@@ -3,18 +3,27 @@ from __future__ import annotations
 import functools
 import types
 import inspect
-from typing import Union, Tuple, TypeVar, List, Any, TYPE_CHECKING
+from typing import Union, Tuple, TypeVar, List, Any, TYPE_CHECKING, Dict
 
 import discord
-from discord import app_commands
+from discord import app_commands, AppCommandOptionType
+from discord.abc import GuildChannel
+from discord.app_commands import Transformer, AppCommandThread, AppCommandChannel
+from discord.app_commands.transformers import IdentityTransformer, MemberTransformer, RawChannelTransformer, \
+    BaseChannelTransformer
 from discord.ext import commands
+from discord.ext.commands import ObjectConverter, MemberConverter, UserConverter, MessageConverter, \
+    PartialMessageConverter, TextChannelConverter, InviteConverter, GuildConverter, RoleConverter, GameConverter, \
+    ColourConverter, VoiceChannelConverter, StageChannelConverter, EmojiConverter, PartialEmojiConverter, \
+    CategoryChannelConverter, ThreadConverter, GuildChannelConverter, GuildStickerConverter, ScheduledEventConverter, \
+    ForumChannelConverter
+
+from .errors import ExpectedEndOfSeparatorArgument, BadUnionTransformerArgument
 
 __all__ = (
     'Separator',
     'SeparatorTransform',
 )
-
-from .errors import ExpectedEndOfSeparatorArgument, BadUnionTransformerArgument
 
 if TYPE_CHECKING:
     from discord.ext.commands.view import StringView
@@ -22,32 +31,107 @@ if TYPE_CHECKING:
 T = TypeVar('T')
 
 
-async def _actual_conversion(converter_origin: Any, interaction: discord.Interaction, value: str) -> Any:
+def _convert_to_bool(argument: str) -> bool:
+    # Copied from dpy, remains unchanged. I dont wanna rely on discord.py fully.
+    lowered = argument.lower()
+    if lowered in ('yes', 'y', 'true', 't', '1', 'enable', 'on'):
+        return True
+    elif lowered in ('no', 'n', 'false', 'f', '0', 'disable', 'off'):
+        return False
+    else:
+        raise commands.BadBoolArgument(lowered)
+
+
+BACKUP_BUILT_IN_TRANSFORMERS: Dict[Any, Transformer] = {
+    str: IdentityTransformer(AppCommandOptionType.string),
+    int: IdentityTransformer(AppCommandOptionType.integer),
+    float: IdentityTransformer(AppCommandOptionType.number),
+    bool: IdentityTransformer(AppCommandOptionType.boolean),
+    discord.User: IdentityTransformer(AppCommandOptionType.user),
+    discord.Member: MemberTransformer(),
+    discord.Role: IdentityTransformer(AppCommandOptionType.role),
+    AppCommandChannel: RawChannelTransformer(AppCommandChannel),
+    AppCommandThread: RawChannelTransformer(AppCommandThread),
+    GuildChannel: BaseChannelTransformer(GuildChannel),
+    discord.Thread: BaseChannelTransformer(discord.Thread),
+    discord.StageChannel: BaseChannelTransformer(discord.StageChannel),
+    discord.VoiceChannel: BaseChannelTransformer(discord.VoiceChannel),
+    discord.TextChannel: BaseChannelTransformer(discord.TextChannel),
+    discord.CategoryChannel: BaseChannelTransformer(discord.CategoryChannel),
+    discord.ForumChannel: BaseChannelTransformer(discord.ForumChannel),
+    discord.Attachment: IdentityTransformer(AppCommandOptionType.attachment),
+}
+
+
+BACKUP_CONVERTER_MAPPING: Dict[type, Any] = {
+    discord.Object: ObjectConverter,
+    discord.Member: MemberConverter,
+    discord.User: UserConverter,
+    discord.Message: MessageConverter,
+    discord.PartialMessage: PartialMessageConverter,
+    discord.TextChannel: TextChannelConverter,
+    discord.Invite: InviteConverter,
+    discord.Guild: GuildConverter,
+    discord.Role: RoleConverter,
+    discord.Game: GameConverter,
+    discord.Colour: ColourConverter,
+    discord.VoiceChannel: VoiceChannelConverter,
+    discord.StageChannel: StageChannelConverter,
+    discord.Emoji: EmojiConverter,
+    discord.PartialEmoji: PartialEmojiConverter,
+    discord.CategoryChannel: CategoryChannelConverter,
+    discord.Thread: ThreadConverter,
+    discord.abc.GuildChannel: GuildChannelConverter,
+    discord.GuildSticker: GuildStickerConverter,
+    discord.ScheduledEvent: ScheduledEventConverter,
+    discord.ForumChannel: ForumChannelConverter,
+}
+
+def _get_built_in_transformer(_type: Any) -> Any:
     try:
-        transformer = app_commands.transformers.BUILT_IN_TRANSFORMERS[converter_origin]
+        transformer = app_commands.transformers.BUILT_IN_TRANSFORMERS[_type]
+    except (KeyError, AttributeError):
+        transformer = BACKUP_BUILT_IN_TRANSFORMERS[_type]
+
+    return transformer
+
+
+def _get_built_in_converter(_type: Any) -> Any:
+    try:
+        converter = commands.converter.CONVERTER_MAPPING[_type]
+    except (KeyError, AttributeError):
+        converter = BACKUP_CONVERTER_MAPPING[_type]
+
+    return converter
+
+
+async def _actual_conversion(converter_origin: Any, interaction: discord.Interaction, value: str) -> Any:
+    transformer = None
+    try:
+        transformer = _get_built_in_transformer(converter_origin)
     except KeyError:
         if isinstance(converter_origin, app_commands.Transformer):
-            return await converter_origin.transform(interaction, value)
-    else:
-        if isinstance(transformer, app_commands.transformers.IdentityTransformer):
-            try:
-                converter = commands.converter.CONVERTER_MAPPING[converter_origin]
-                ctx = await interaction.client.get_context(interaction)  # type: ignore
-                converter = functools.partial(converter().convert, ctx)
-            except AttributeError:
-                converter = None
-            except KeyError:
-                converter = converter_origin
-                if isinstance(converter_origin, bool):
-                    converter = commands.converter._convert_to_bool
+            transformer = converter_origin
 
-            if converter is not None:
-                try:
-                    return await discord.utils.maybe_coroutine(converter, value)
-                except Exception:
-                    raise app_commands.TransformerError(value, transformer.type, transformer) from None
-        else:
-            return await transformer.transform(interaction, value)
+    if isinstance(transformer, app_commands.transformers.IdentityTransformer):
+        # Since its an identity, we try to use regular converter instead.
+        try:
+            converter = _get_built_in_converter(converter_origin)
+            ctx = await interaction.client.get_context(interaction)  # type: ignore
+            converter = functools.partial(converter().convert, ctx)
+        except AttributeError:
+            converter = None
+        except KeyError:
+            converter = _convert_to_bool if isinstance(converter_origin, bool) else converter_origin
+
+        if converter is not None:
+            try:
+                return await discord.utils.maybe_coroutine(converter, value)
+            except Exception:
+                raise app_commands.TransformerError(value, transformer.type, transformer) from None
+        raise TypeError(f"{converter_origin.__name__} has no equivalent text converter.")
+    elif isinstance(transformer, app_commands.Transformer):
+        return await transformer.transform(interaction, value)
 
     raise TypeError(f"{converter_origin.__name__} must inherit Transformer.")
 
@@ -262,4 +346,3 @@ class SeparatorTransform(Separator):
     def __class_getitem__(cls, params: Union[Tuple[T, str], T]) -> SeparatorTransform:
         instance = super().__class_getitem__(params)
         return app_commands.Transform[instance.converter, instance]
-
