@@ -290,7 +290,7 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
         ctx = interaction._baton
         parameter = None
         if is_hybrid_app:
-            for frameinfo in inspect.stack():
+            for frameinfo in inspect.stack():  # frame hack just to get CommandParameter obj
                 try:
                     param = frameinfo.frame.f_locals['self']
                     if not isinstance(param, app_commands.transformers.CommandParameter):
@@ -345,4 +345,4 @@ class SeparatorTransform(Separator):
     """
     def __class_getitem__(cls, params: Union[Tuple[T, str], T]) -> SeparatorTransform:
         instance = super().__class_getitem__(params)
-        return app_commands.Transform[instance.converter, instance]
+        return app_commands.Transform[List[instance.converter], instance]
