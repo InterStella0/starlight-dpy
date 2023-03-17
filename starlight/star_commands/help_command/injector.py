@@ -391,7 +391,7 @@ class HelpHybridCommand(commands.HelpCommand):
 
         for key in keys[1:]:
             try:
-                d = getattr(cmd, 'all_commands', cmd._children) if self.include_apps else cmd.all_commands  # type: ignore
+                d = (getattr(cmd, 'all_commands', None) or cmd._children) if self.include_apps else cmd.all_commands  # type: ignore
                 found = d.get(key)  # type: ignore
             except AttributeError:
                 string = await maybe_coro(self.subcommand_not_found, cmd, self.remove_mentions(key))
