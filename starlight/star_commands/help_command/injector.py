@@ -632,6 +632,6 @@ class HelpHybridCommand(commands.HelpCommand):
         impl = self._command_impl
         bot.remove_command(impl.name)
         app = impl.app_command
-        for snowflake in app._guild_ids or []:
+        for snowflake in getattr(app, '_guild_ids', None) or []:
             bot.tree.remove_command(app.name, guild=discord.Object(snowflake))
         impl._eject_cog()
