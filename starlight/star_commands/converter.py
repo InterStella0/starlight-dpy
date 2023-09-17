@@ -3,10 +3,9 @@ from __future__ import annotations
 import functools
 import types
 import inspect
-from typing import Union, Tuple, TypeVar, List, Any, TYPE_CHECKING, Dict
+from typing import Union, Tuple, TypeVar, List, Any, TYPE_CHECKING, Dict, Annotated
 
 import discord
-import typing
 from discord import app_commands, AppCommandOptionType
 from discord.abc import GuildChannel
 from discord.app_commands import Transformer, AppCommandThread, AppCommandChannel
@@ -328,8 +327,10 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
         return result
 
 
+_Separator = Separator[T, str]
+
 class SeparatorTransform(Separator):
-    r"""This is :class:`Separator` for application command equivalent of ``Transform[List[T], Separator[T]]``.
+    r"""This is :class:`Separator` for application command equivalent of ``Transform[List[T], Separator[T, str]]``.
 
     For example, in the following code:
 
@@ -345,8 +346,8 @@ class SeparatorTransform(Separator):
     ``[1, 2, 3, 4, 5, 6]`` and ``reason`` with ``hello``\.
     """
     def __class_getitem__(cls, params: Union[Tuple[T, str], T]
-                          ) -> Union[typing.Annotated[List[T], Separator[T]], SeparatorTransform[T]]:
+                          ) -> Union[Annotated[List[T], _Separator], app_commands.Transform[List[T], _Separator]]:
         instance = super().__class_getitem__(params)
         if TYPE_CHECKING:
-            return typing.Annotated[List[instance.converter], instance]
+            return Annotated[List[instance.converter], instance]
         return app_commands.Transform[List[instance.converter], instance]

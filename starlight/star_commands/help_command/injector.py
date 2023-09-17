@@ -1,3 +1,4 @@
+from __future__ import annotations
 import copy
 import functools
 from typing import Any, Dict, Generator, Callable, List, Optional, Union, Iterable
