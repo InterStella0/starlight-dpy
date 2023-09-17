@@ -139,7 +139,7 @@ class MenuHelpCommand(HelpHybridCommand):
         if isinstance(group, commands.HybridGroup):
             group_description += f"\n\n*Slash command available.*"
 
-        description = group_description + f"\n\n**Subcommands**\n{subcommands}" if subcommands else ""
+        description = group_description + (f"\n\n**Subcommands**\n{subcommands}" if subcommands else "")
         return discord.Embed(
             title=self.get_command_signature(group),
             description=description,
@@ -204,7 +204,7 @@ class MenuHelpCommand(HelpHybridCommand):
         """
         return getattr(cog, "qualified_name", None) or self.no_category
 
-    async def __normalized_kwargs(self, callback, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+    async def __normalized_kwargs(self, callback, *args: Any, **kwargs: Any) -> Dict[str, Any]:  # noqa
         formed_interface = await discord.utils.maybe_coroutine(callback, *args, **kwargs)
         if isinstance(formed_interface, dict):
             return formed_interface
