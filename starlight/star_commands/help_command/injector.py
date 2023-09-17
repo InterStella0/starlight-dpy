@@ -12,6 +12,7 @@ from discord.ext.commands.core import get_signature_parameters, Command
 __all__ = (
     'convert_help_hybrid',
     'HelpHybridCommand',
+    'help_autocomplete',
 )
 
 import starlight
@@ -65,11 +66,18 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
     def __init__(self, inject: commands.HelpCommand, *args: Any, **kwargs: Any) -> None:
         _method_partial(inject)
         super().__init__(inject.command_callback, *args, **kwargs)
+        self.__inject_callback_meta(inject)
         self._original: commands.HelpCommand = inject
         self._injected: commands.HelpCommand = inject
         self.params: Dict[str, Parameter] = get_signature_parameters(
             inject.__original_callback__.callback, globals(), skip_parameters=1  # type: ignore
         )
+
+    def __inject_callback_meta(self, inject: commands.HelpCommand):
+        autocompletes = getattr(inject, '_retrieve_autocompletes', lambda: [])()
+
+        for func in autocompletes:
+            self.autocomplete(func.__help_autocomplete_parameter__)(func)
 
     async def prepare(self, ctx: commands.Context) -> None:
         self._injected = injected = self._original.copy()
@@ -126,6 +134,44 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
         cog.get_commands = cog.get_commands.__wrapped__
         cog.walk_commands = cog.walk_commands.__wrapped__
         self.cog = None
+
+
+def help_autocomplete(*, parameter_name: str):
+    r"""Associates the given parameter_name with the given autocomplete callback.
+
+    This is only used within a HybridHelpCommand class
+
+    Autocomplete is only supported on types that have :class:`str`, :class:`int`, or :class:`float`
+    values.
+
+    Example:
+
+    .. code-block:: python3
+
+        class MyHelpCommand(starlight.HybridHelpCommand):
+            @starlight.help_autocomplete(parameter_name='command')
+            async def help_command_autocomplete(self, interaction: discord.Interaction[commands.Bot], current: str
+                                                ) -> List[app_commands.Choice[str]]:
+                help_command = self.copy()
+                help_command.context = await interaction.client.get_context(interaction)
+                cogs_commands = await help_command.fuzzy_search_command_cog(interaction, current)
+                return [
+                    app_commands.Choice(name=x.qualified_name, value=x.qualified_name)
+                    for x in cogs_commands
+                ][:25]
+
+
+    Parameters
+    -----------
+    parameter_name
+        The parameter_name to mark as autocomplete.
+
+    """
+    def decorator(func):
+        func.__help_autocomplete_parameter__ = parameter_name
+        func.__help_autocomplete__ = True
+        return func
+    return decorator
 
 
 class _InjectHelpHybridCommand:
@@ -231,6 +277,12 @@ class HelpHybridCommand(commands.HelpCommand):
         self._command_impl = _HelpHybridCommandImpl(self, **self.command_attrs)
         self._command_prefix: Optional[str] = None
         self.include_apps: bool = options.pop('include_apps', True)
+
+    def _retrieve_autocompletes(self):
+        for attr in dir(self):
+            func = getattr(self, attr, None)
+            if getattr(func, '__help_autocomplete__', None):
+                yield func
 
     async def send_bot_help(self, mapping: Dict[Optional[commands.Cog], List[CommandTextApp]], /) -> None:
         """|coro|
@@ -354,12 +406,7 @@ class HelpHybridCommand(commands.HelpCommand):
         bot = ctx.bot
 
         if command is None:
-            mapping = self.get_bot_mapping()
-            if self.include_apps:
-                app_mapping = self.get_bot_app_mapping()
-                for cog, app_cmds in app_mapping.items():
-                    mapping.setdefault(cog, []).extend(app_cmds)
-
+            mapping = self.get_all_commands()
             return await self.send_bot_help(mapping)
 
         # Check if it's a cog
@@ -612,6 +659,23 @@ class HelpHybridCommand(commands.HelpCommand):
             mapping[None].extend(get_cmds(guild))
 
         mapping[None].extend(get_cmds())
+
+        return mapping
+
+    def get_all_commands(self) -> Dict[Optional[commands.Cog], List[CommandTextApp]]:
+        """Retrieves bot the text command and app command bot mapping.
+
+        Returns
+        --------
+
+            Dict[Optional[:class:`~discord.ext.commands.Cog`], List[Union[:class:`~discord.ext.commands.Command`, :class:`~discord.app_commands.Command`, :class:`~discord.app_commands.Group`]]
+                A mapping of cog with text and app commands associated with it.
+        """
+        mapping = self.get_bot_mapping()
+        if self.include_apps:
+            app_mapping = self.get_bot_app_mapping()
+            for cog, app_cmds in app_mapping.items():
+                mapping.setdefault(cog, []).extend(app_cmds)
 
         return mapping
 
