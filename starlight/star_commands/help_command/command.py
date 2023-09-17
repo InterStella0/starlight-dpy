@@ -11,12 +11,15 @@ from discord.ext.commands import HybridCommand
 from .view import HelpMenuCommand, HelpMenuProvider, HelpMenuGroup, HelpMenuError, HelpMenuCog, MenuHomeButton, \
     HelpPaginateProvider, HelpPaginateBot, HelpMenuBot
 from ..views.pagination import ViewAuthor
-from .injector import HelpHybridCommand
+from .injector import HelpHybridCommand, help_autocomplete
 
 __all__ = (
     "MenuHelpCommand",
     "PaginateHelpCommand",
 )
+
+from ...utils.general import flatten
+from ...utils.search import search, Fuzzy
 
 T = TypeVar('T')
 if TYPE_CHECKING:
@@ -450,6 +453,41 @@ class MenuHelpCommand(HelpHybridCommand):
             description=f"{desc}{list_cmds}",
             color=self.accent_color
         )
+
+    async def fuzzy_search_command_cog(self, query: str
+                                       ) -> List[Union[_Command, commands.Cog]]:
+        """Fuzzy matchin on command searching for the 'command' parameter.
+        You can override this to change it's behaviour.
+
+        Parameters
+        ------------
+        query: :class:`str`
+            The query of command or cog.
+
+        Returns
+        --------
+        List[Union[`commands.Cog`, `commands.Command`, `app_commands.Command`, `app_commands.Group`]]
+            The values that will be shown to the user by `app_commands.Choice`.
+        """
+
+        mapping = self.get_all_commands()
+        filtered = {cog: await self.filter_commands(cmds) for cog, cmds in mapping.items()}
+        cogs_commands = {cog: cmds for cog, cmds in filtered.items() if cmds and cog}
+        flat = flatten([*cogs_commands, *cogs_commands.values()])
+        fuzzy = Fuzzy(query, cutoff_ratio=.5)
+        cmds_by_name = search(flat, sort=True, qualified_name=fuzzy)
+        return cmds_by_name
+
+    @help_autocomplete(parameter_name='command')
+    async def help_command_autocomplete(self, interaction: discord.Interaction, current: str
+                                        ) -> List[app_commands.Choice[str]]:
+        help_command = self.copy()
+        help_command.context = await interaction.client.get_context(interaction)  # type: ignore
+        cogs_commands = await help_command.fuzzy_search_command_cog(interaction, current)
+        return [
+            app_commands.Choice(name=x.qualified_name, value=x.qualified_name)
+            for x in cogs_commands
+        ][:25]
 
 
 class PaginateHelpCommand(MenuHelpCommand):
