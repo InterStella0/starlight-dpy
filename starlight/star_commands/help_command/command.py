@@ -483,7 +483,7 @@ class MenuHelpCommand(HelpHybridCommand):
                                         ) -> List[app_commands.Choice[str]]:
         help_command = self.copy()
         help_command.context = await interaction.client.get_context(interaction)  # type: ignore
-        cogs_commands = await help_command.fuzzy_search_command_cog(interaction, current)
+        cogs_commands = await help_command.fuzzy_search_command_cog(current)
         return [
             app_commands.Choice(name=x.qualified_name, value=x.qualified_name)
             for x in cogs_commands

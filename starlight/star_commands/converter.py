@@ -327,7 +327,8 @@ class Separator(app_commands.Transformer):  # Do not subclass Greedy due to gree
         return result
 
 
-_Separator = Separator[T, str]
+if TYPE_CHECKING:
+    _Separator = Separator[T, str]
 
 class SeparatorTransform(Separator):
     r"""This is :class:`Separator` for application command equivalent of ``Transform[List[T], Separator[T, str]]``.

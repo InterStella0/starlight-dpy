@@ -122,3 +122,8 @@ convert_help_hybrid
 ~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: convert_help_hybrid
+
+help_autocomplete
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: help_autocomplete
