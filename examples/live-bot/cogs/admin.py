@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Union, Annotated, Optional
 
 import discord.utils
 import starlight
 from discord.ext import commands
+from starlight import star_commands
 
 from utils.pagination import StellaPagination
 
@@ -55,6 +56,18 @@ class AdminCog(commands.Cog, name="Admin Category"):
             await ctx.guild.unban(u, reason='no reason')
 
         await ctx.send(f'Unbanned {", ".join(map(str, users))}')
+
+    @star_commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def warn_users(self, ctx: commands.Context,
+                         users: star_commands.Separator[Union[discord.Member, discord.User]],
+                         *, reason: Annotated[Optional[str], str.strip] = None):
+        all_users = ", ".join(map(str, users))
+        formatted = '{} has been warned with reason: "{}"' if reason else '{} has been warned.'
+        await ctx.send(formatted.format(all_users, reason))
+
+
 
 
 async def setup(bot: commands.Bot):
