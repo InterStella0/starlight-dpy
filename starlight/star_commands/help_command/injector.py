@@ -74,6 +74,9 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
         )
 
     def __inject_callback_meta(self, inject: commands.HelpCommand):
+        if not self.with_app_command:
+            return
+
         autocompletes = getattr(inject, '_retrieve_autocompletes', lambda: [])()
 
         for func in autocompletes:
