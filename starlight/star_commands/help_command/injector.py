@@ -266,15 +266,15 @@ class HelpHybridCommand(commands.HelpCommand):
     Parameters
     -----------
         with_app_command: :class:`bool`
-            Whether to include app command implementation in your tree. Defaults to False. A shortcut to
-            `command_attrs=dict(with_app_command)`.
+            Whether to include app command implementation in your tree. Defaults to True. A shortcut to
+            `command_attrs=dict(with_app_command=True)`.
         include_apps: :class:`bool`
             Whether to include app commands. Only applicable if help command is invoked with app command.
             Defaults to True.
         **options: Any
             Passed keyword arguments are sent to :class:`~discord.ext.commands.HelpCommand`.
     """
-    def __init__(self, *, with_app_command: bool = False, **options: Any):
+    def __init__(self, *, with_app_command: bool = True, **options: Any):
         super().__init__(**options)
         self.command_attrs['with_app_command'] = with_app_command
         self._command_impl = _HelpHybridCommandImpl(self, **self.command_attrs)

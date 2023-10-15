@@ -55,6 +55,10 @@ class MenuHelpCommand(HelpHybridCommand):
     inline_fields: :class:`bool`
         Boolean that indicate if embed field on cog should be inline. Defaults to True.
 
+    with_app_command: :class:`bool`
+        Whether to include app command implementation in your tree. Defaults to False. A shortcut to
+        `command_attrs=dict(with_app_command=False)`.
+
     cls_home_button: Type[:class:`MenuHomeButton`]
         :class:`discord.ui.Button` class for the home button.
     view_provider: :class:`HelpMenuProvider`
@@ -74,8 +78,9 @@ class MenuHelpCommand(HelpHybridCommand):
                  pagination_buttons: Optional[Mapping[str, discord.ui.Button]] = None,
                  inline_fields: bool = True,
                  cls_home_button: Type[MenuHomeButton] = MenuHomeButton,
+                 with_app_command: bool = False,
                  **options):
-        super().__init__(**options)
+        super().__init__(with_app_command=with_app_command, **options)
         self.no_category: str = no_category
         self.per_page: int = per_page
         self.inline_fields = inline_fields
