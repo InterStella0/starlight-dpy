@@ -1,7 +1,7 @@
 from __future__ import annotations
 import copy
 import functools
-from typing import Any, Dict, Generator, Callable, List, Optional, Union, Iterable
+from typing import Any, Dict, Generator, Callable, List, Optional, TypeVar, Union, Iterable
 
 import discord
 from discord import app_commands
@@ -13,10 +13,12 @@ __all__ = (
     'convert_help_hybrid',
     'HelpHybridCommand',
     'help_autocomplete',
+    'describe_help_command',
 )
 
 import starlight
 
+HelpCommandTypeT = TypeVar("HelpCommandTypeT", bound="type[HelpHybridCommand]")
 CommandTextApp = Union[commands.Command, app_commands.Command, app_commands.Group]
 
 class _InjectorCallback:
@@ -34,6 +36,18 @@ class _InjectorCallback:
             cog, *args = args
 
         return await self.callback.__func__(self.bind, *args, **kwargs)
+
+
+def describe_help_command(**descriptions: str) -> Callable[[HelpCommandTypeT], HelpCommandTypeT]:
+    def decorator(cls: HelpCommandTypeT) -> HelpCommandTypeT:
+        current: Dict[str, str]
+        try:
+            current = cls.__starlight_help_parameter_descriptions__ # type: ignore
+        except AttributeError:
+            cls.__starlight_help_parameter_descriptions__ = current = {} # type: ignore
+        current.update(descriptions)
+        return cls
+    return decorator
 
 
 def _method_partial(inject):
@@ -72,6 +86,18 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
         self.params: Dict[str, Parameter] = get_signature_parameters(
             inject.__original_callback__.callback, globals(), skip_parameters=1  # type: ignore
         )
+
+        # copy over descriptions to each command
+        descriptions: Dict[str, str] = getattr(inject, "__starlight_help_parameter_descriptions__", {})
+
+        app_commands.describe(**descriptions)(self.app_command)
+        for name, description in descriptions.items():
+            try:
+                param = self.params[name]
+            except KeyError:
+                continue
+            else:
+                param._description = description
 
     def __inject_callback_meta(self, inject: commands.HelpCommand):
         if not self.with_app_command:
