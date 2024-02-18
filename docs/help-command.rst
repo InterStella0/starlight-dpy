@@ -127,3 +127,8 @@ help_autocomplete
 ~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: help_autocomplete
+
+describe_help_command
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: describe_help_command

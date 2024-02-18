@@ -1,7 +1,7 @@
 from __future__ import annotations
 import copy
 import functools
-from typing import Any, Dict, Generator, Callable, List, Optional, Union, Iterable
+from typing import Any, Dict, Generator, Callable, List, Optional, TypeVar, Union, Iterable
 
 import discord
 from discord import app_commands
@@ -13,10 +13,12 @@ __all__ = (
     'convert_help_hybrid',
     'HelpHybridCommand',
     'help_autocomplete',
+    'describe_help_command',
 )
 
 import starlight
 
+HelpCommandTypeT = TypeVar("HelpCommandTypeT", bound="type[HelpHybridCommand]")
 CommandTextApp = Union[commands.Command, app_commands.Command, app_commands.Group]
 
 class _InjectorCallback:
@@ -34,6 +36,34 @@ class _InjectorCallback:
             cog, *args = args
 
         return await self.callback.__func__(self.bind, *args, **kwargs)
+
+
+def describe_help_command(**descriptions: Union[str, app_commands.locale_str]) -> Callable[[HelpCommandTypeT], HelpCommandTypeT]:
+    r"""Describes the parameters for the :meth:`help command callback<HelpHybridCommand.command_callback>`.
+
+    Each keyword argument should correspond to a parameter name and works similarly to :func:`discord.app_commands.describe`.
+    This method can be useful to customise the ``command`` parameter description, for example:
+
+    .. code-block:: python3
+
+        @starlight.describe_help_command(command="command or category")
+        class MyHelpCommand(starlight.MenuHelpCommand):
+            pass
+
+    Parameters
+    -----------
+    \*\*parameters: Union[:class:`str`, :class:`~discord.app_commands.locale_str`]
+        The parameter descriptions. :class:`~discord.app_commands.locale_str` strings only apply to the app command.
+    """
+    def decorator(cls: HelpCommandTypeT) -> HelpCommandTypeT:
+        current: Dict[str, Union[str, app_commands.locale_str]]
+        try:
+            current = cls.__starlight_help_parameter_descriptions__ # type: ignore
+        except AttributeError:
+            cls.__starlight_help_parameter_descriptions__ = current = {} # type: ignore
+        current.update(descriptions)
+        return cls
+    return decorator
 
 
 def _method_partial(inject):
@@ -72,6 +102,20 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
         self.params: Dict[str, Parameter] = get_signature_parameters(
             inject.__original_callback__.callback, globals(), skip_parameters=1  # type: ignore
         )
+
+        # copy over descriptions to each command
+        descriptions: Dict[str, Union[str, app_commands.locale_str]] = getattr(inject, "__starlight_help_parameter_descriptions__", {})
+
+        if self.app_command:
+            app_commands.describe(**descriptions)(self.app_command)
+
+        for name, description in descriptions.items():
+            try:
+                param = self.params[name]
+            except KeyError:
+                continue
+            else:
+                self.params[name] = param.replace(description=str(description))
 
     def __inject_callback_meta(self, inject: commands.HelpCommand):
         if not self.with_app_command:
