@@ -8,6 +8,7 @@ import starlight
 from utils.pagination import StellaPagination
 
 
+@starlight.describe_help_command(command="command or category")
 class MyHelpCommand(starlight.MenuHelpCommand):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

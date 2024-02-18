@@ -12,8 +12,8 @@ from typing import NamedTuple, Literal
 __title__ = 'starlight-dpy'
 __author__ = 'InterStella0'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2022-present InterStella0'
-__version__ = '0.0.1b6'
+__copyright__ = 'Copyright 2024-present InterStella0'
+__version__ = '0.0.1b7'
 
 
 class VersionInfo(NamedTuple):
