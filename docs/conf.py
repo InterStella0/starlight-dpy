@@ -9,7 +9,7 @@ import os
 import sys
 
 project = 'starlight-dpy'
-copyright = '2022, Sarah'
+copyright = '2024, Sarah'
 author = 'Sarah'
 release = '0.0.1'
 
