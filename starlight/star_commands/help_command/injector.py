@@ -115,7 +115,7 @@ class _HelpHybridCommandImpl(commands.HybridCommand):
             except KeyError:
                 continue
             else:
-                param = param.replace(description=str(description))
+                self.params[name] = param.replace(description=str(description))
 
     def __inject_callback_meta(self, inject: commands.HelpCommand):
         if not self.with_app_command:
