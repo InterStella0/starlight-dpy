@@ -9,8 +9,19 @@ Feel free to open an issue if you found any bugs!🌷
 **Do not use this in production.**
 
 ### Installation
+Requires discord.py 2.7.1 or newer.
+```
+pip install starlight-dpy==0.0.1b8
+```
+
+Or install the latest commit from GitHub:
 ```
 pip install git+https://github.com/InterStella0/starlight-dpy
+```
+
+To pin a release tag from GitHub instead:
+```
+pip install git+https://github.com/InterStella0/starlight-dpy@v0.0.1b8
 ```
 
 # Help Command

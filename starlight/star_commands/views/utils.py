@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Any, Dict, TYPE_CHECKING, TypeVar, Union, As
 
 import discord
 from discord.ext import commands
-from discord.ui.view import _ViewCallback
+from discord.ui.item import _ItemCallback
 
 if TYPE_CHECKING:
     from .pagination import SimplePaginationView
@@ -84,7 +84,7 @@ class InlineView(InlineIterator[_InlineViewReturn]):
 
         for it in [item] if item else view.children:
             self.__previous_callback[it] = it.callback
-            it.callback = _ViewCallback(callback, view, it)
+            it.callback = _ItemCallback(callback, view, it)
 
         self.__timeout_callback = view.on_timeout
         view.on_timeout = self._on_timeout
